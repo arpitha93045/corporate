@@ -181,7 +181,7 @@ cd corporate-ui && npm install
 Day-to-day:
 ```bash
 # terminal 1
-cd corporate-service && mvn spring-boot:run   # backend on :8080
+cd corporate-service && ./mvnw spring-boot:run   # backend on :8080
 
 # terminal 2
 cd corporate-ui && ng serve     # frontend on :4200, proxies /api → :8080

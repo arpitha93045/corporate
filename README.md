@@ -13,7 +13,7 @@ See [`PLAN.md`](./PLAN.md) for the full architecture and roadmap.
 ## Prerequisites
 
 - Java 21
-- Maven 3.9+
+- Maven 3.9+ *(optional — the repo ships `./mvnw` wrapper)*
 - Node.js 22.22.3+ (use `nvm install 22.22.3 && nvm use 22.22.3`)
 - Docker (only if you want PostgreSQL; H2 works without it)
 
@@ -24,7 +24,7 @@ Backend uses an in-memory H2 DB seeded by Flyway. Data resets every restart.
 ```bash
 # Terminal 1 — backend on :8080
 cd corporate-service
-mvn spring-boot:run -Dspring-boot.run.profiles=h2
+./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 
 # Terminal 2 — frontend on :4200 (or 4300 if 4200 is taken)
 cd corporate-ui
@@ -43,7 +43,7 @@ The Angular dev server proxies `/api/*` to `http://localhost:8080` via `corporat
 docker compose up -d
 
 # Terminal 2 — backend on :8080 (uses dev profile, the default)
-cd corporate-service && mvn spring-boot:run
+cd corporate-service && ./mvnw spring-boot:run
 
 # Terminal 3 — frontend
 cd corporate-ui && npx ng serve
@@ -75,7 +75,7 @@ MAIL_FROM=gifts@yourdomain.com               # maps to app.mail.from
 
 ```bash
 cd corporate-service
-mvn package -DskipTests
+./mvnw package -DskipTests
 java -jar target/corporate-1.0-SNAPSHOT.jar --spring.profiles.active=prod
 ```
 
