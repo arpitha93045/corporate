@@ -1,0 +1,39 @@
+<header class="site-header">
+  <div class="container header-inner">
+    <a routerLink="/" class="brand">
+      <span class="brand-mark">CG</span>
+      <span class="brand-name">Corporate Gifting</span>
+    </a>
+    <nav class="primary-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Catalog</a>
+      <a routerLink="/enquiry" routerLinkActive="active">Bulk enquiry</a>
+      <a routerLink="/about" routerLinkActive="active">About</a>
+      <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+        Cart
+        @if (cart.count() > 0) {
+          <span class="cart-badge">{{ cart.count() }}</span>
+        }
+      </a>
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/account/orders" routerLinkActive="active">My orders</a>
+        <span class="user-chip" title="{{ auth.user()?.email }}">
+          {{ auth.user()?.fullName }}
+        </span>
+        <button type="button" class="link-btn" (click)="logout()">Sign out</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active">Sign in</a>
+        <a routerLink="/signup" routerLinkActive="active" class="signup-link">Sign up</a>
+      }
+    </nav>
+  </div>
+</header>
+
+<main class="container site-main">
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; {{ year }} Corporate Gifting. Thoughtful gifts for thoughtful companies.</p>
+  </div>
+</footer>

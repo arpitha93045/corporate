@@ -1,0 +1,43 @@
+<div class="auth-page">
+  <section class="card auth-card">
+    <h1>Create an account</h1>
+    <p class="muted">A quick signup so we can keep track of your orders.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <div>
+        <label>Full name</label>
+        <input type="text" formControlName="fullName" autocomplete="name" />
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" formControlName="email" autocomplete="email" />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" formControlName="password" autocomplete="new-password" />
+        <span class="muted small">At least 8 characters.</span>
+      </div>
+      <div>
+        <label>Company (optional)</label>
+        <input type="text" formControlName="companyName" autocomplete="organization" />
+      </div>
+      <div>
+        <label>Phone (optional)</label>
+        <input type="tel" formControlName="phone" autocomplete="tel" />
+      </div>
+
+      @if (errorMsg()) {
+        <p class="error">{{ errorMsg() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="muted small">
+      Already have an account?
+      <a routerLink="/login" [queryParams]="redirectQuery">Sign in</a>.
+    </p>
+  </section>
+</div>

@@ -1,0 +1,73 @@
+<section class="hero">
+  <h1>Corporate gifts, thoughtfully curated.</h1>
+  <p class="muted">Welcome kits, premium hampers, branded merch, and more — built for teams who care about the details.</p>
+</section>
+
+<section class="filters">
+  <button class="chip" [class.active]="selectedCategory() === null" (click)="selectCategory(null)">All</button>
+  @for (c of categories(); track c.id) {
+    <button class="chip" [class.active]="selectedCategory() === c.slug" (click)="selectCategory(c.slug)">{{ c.name }}</button>
+  }
+</section>
+
+<section class="refine card">
+  <div class="refine-field grow">
+    <label for="search">Search</label>
+    <input id="search" type="search" placeholder="Try “chocolate” or “welcome kit”"
+           [ngModel]="search()" (ngModelChange)="search.set($event)" />
+  </div>
+  <div class="refine-field">
+    <label for="min">Min price (₹)</label>
+    <input id="min" type="number" min="0" inputmode="numeric" placeholder="0"
+           [ngModel]="minPrice()" (ngModelChange)="minPrice.set($event === '' || $event === null ? null : +$event)" />
+  </div>
+  <div class="refine-field">
+    <label for="max">Max price (₹)</label>
+    <input id="max" type="number" min="0" inputmode="numeric" placeholder="No limit"
+           [ngModel]="maxPrice()" (ngModelChange)="maxPrice.set($event === '' || $event === null ? null : +$event)" />
+  </div>
+  <div class="refine-field">
+    <label for="sort">Sort by</label>
+    <select id="sort" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+      <option value="default">Newest</option>
+      <option value="price-asc">Price: low to high</option>
+      <option value="price-desc">Price: high to low</option>
+      <option value="name">Name (A–Z)</option>
+    </select>
+  </div>
+  @if (hasActiveFilters()) {
+    <button type="button" class="link-btn" (click)="clearFilters()">Clear</button>
+  }
+</section>
+
+@if (loading()) {
+  <p class="muted">Loading products…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (visibleProducts().length === 0) {
+  @if (hasActiveFilters()) {
+    <p class="muted">No products match these filters. <button type="button" class="link-btn" (click)="clearFilters()">Clear filters</button></p>
+  } @else {
+    <p class="muted">No products in this category yet.</p>
+  }
+} @else {
+  <p class="result-count muted">Showing {{ visibleProducts().length }} of {{ products().length }}</p>
+  <section class="product-grid">
+    @for (p of visibleProducts(); track p.id) {
+      <a class="product-card card" [routerLink]="['/products', p.slug]">
+        <div class="product-image" [class.no-image]="!p.imageUrl">
+          @if (p.imageUrl) {
+            <img [src]="p.imageUrl" [alt]="p.name" />
+          } @else {
+            <span>{{ p.name.charAt(0) }}</span>
+          }
+        </div>
+        <div class="product-body">
+          <div class="product-category">{{ p.categoryName }}</div>
+          <h3 class="product-name">{{ p.name }}</h3>
+          <div class="product-price">{{ p.priceCents | money }}</div>
+        </div>
+      </a>
+    }
+  </section>
+}

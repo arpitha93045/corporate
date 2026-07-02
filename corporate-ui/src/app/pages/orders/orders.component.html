@@ -1,0 +1,31 @@
+<h1>My orders</h1>
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (orders().length === 0) {
+  <section class="card empty">
+    <h3>No orders yet.</h3>
+    <p class="muted">Once you place an order, it'll show up here.</p>
+    <a class="btn" routerLink="/">Browse the catalog</a>
+  </section>
+} @else {
+  <ul class="order-list">
+    @for (o of orders(); track o.orderNumber) {
+      <li class="card order-row">
+        <a [routerLink]="['/order', o.orderNumber]" class="order-link">
+          <div class="order-main">
+            <div class="order-number">{{ o.orderNumber }}</div>
+            <div class="muted small">{{ o.createdAt | date:'d MMM yyyy, h:mm a' }}</div>
+          </div>
+          <div class="order-meta">
+            <span class="status" [class.status-placed]="o.status === 'PLACED'">{{ o.status }}</span>
+            <span class="muted">{{ o.itemCount }} {{ o.itemCount === 1 ? 'item' : 'items' }}</span>
+            <span class="total">{{ o.subtotalCents | money }}</span>
+          </div>
+        </a>
+      </li>
+    }
+  </ul>
+}

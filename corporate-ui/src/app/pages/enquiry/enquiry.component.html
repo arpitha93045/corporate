@@ -1,0 +1,64 @@
+<h1>Talk to us about a bulk order</h1>
+<p class="muted">
+  Tell us what you have in mind &mdash; quantity, occasion, budget &mdash; and we'll
+  come back within one business day with options.
+</p>
+
+@if (submitted()) {
+  <section class="card thanks">
+    <h3>Thanks, we've got it.</h3>
+    <p>We'll be in touch at the email you provided.</p>
+    <button type="button" (click)="submitted.set(false)">Send another enquiry</button>
+  </section>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form card">
+    <div class="grid-2">
+      <div>
+        <label>Your name</label>
+        <input type="text" formControlName="name" autocomplete="name" />
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" formControlName="email" autocomplete="email" />
+      </div>
+      <div>
+        <label>Company</label>
+        <input type="text" formControlName="companyName" autocomplete="organization" />
+      </div>
+      <div>
+        <label>Phone</label>
+        <input type="tel" formControlName="phone" autocomplete="tel" />
+      </div>
+      <div>
+        <label>Estimated quantity</label>
+        <input type="number" min="1" formControlName="estimatedQuantity" />
+      </div>
+      <div>
+        <label>Occasion</label>
+        <input type="text" formControlName="occasion" placeholder="Onboarding, Diwali, client appreciation…" />
+      </div>
+      <div>
+        <label>Event date</label>
+        <input type="date" formControlName="eventDate" />
+      </div>
+      <div>
+        <label>Budget range</label>
+        <input type="text" formControlName="budgetRange" placeholder="₹500–₹2000 per gift" />
+      </div>
+    </div>
+
+    <div>
+      <label>Tell us more</label>
+      <textarea rows="5" formControlName="message"
+                placeholder="Quantities, recipients, customization, deadlines — anything that helps us help you."></textarea>
+    </div>
+
+    @if (errorMsg()) {
+      <p class="error">{{ errorMsg() }}</p>
+    }
+
+    <button type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Sending…' : 'Send enquiry' }}
+    </button>
+  </form>
+}

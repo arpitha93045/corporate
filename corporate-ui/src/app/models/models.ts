@@ -1,0 +1,111 @@
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  priceCents: number;
+  imageUrl: string | null;
+  inStock: boolean;
+  categoryName: string;
+  categorySlug: string;
+}
+
+export interface CartLine {
+  product: Product;
+  quantity: number;
+}
+
+export interface OrderItem {
+  productId: number;
+  productName: string;
+  unitPriceCents: number;
+  quantity: number;
+  lineTotalCents: number;
+}
+
+export interface OrderAddress {
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string | null;
+  postalCode: string;
+  country: string;
+}
+
+export interface Order {
+  orderNumber: string;
+  status: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string | null;
+  shippingAddress: OrderAddress;
+  items: OrderItem[];
+  subtotalCents: number;
+  createdAt: string;
+}
+
+export interface CheckoutRequest {
+  customer: {
+    companyName: string;
+    contactName: string;
+    email: string;
+    phone: string;
+  };
+  shippingAddress: OrderAddress;
+  items: { productId: number; quantity: number }[];
+}
+
+export interface UserSummary {
+  id: number;
+  email: string;
+  fullName: string;
+  companyName: string | null;
+  phone: string | null;
+  role: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  expiresInSeconds: number;
+  user: UserSummary;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  fullName: string;
+  companyName?: string;
+  phone?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface EnquiryRequest {
+  name: string;
+  email: string;
+  companyName?: string;
+  phone?: string;
+  message: string;
+  estimatedQuantity?: number;
+  occasion?: string;
+  eventDate?: string;
+  budgetRange?: string;
+}
+
+export interface OrderSummary {
+  orderNumber: string;
+  status: string;
+  subtotalCents: number;
+  itemCount: number;
+  createdAt: string;
+}

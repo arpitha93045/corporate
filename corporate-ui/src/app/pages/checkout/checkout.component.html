@@ -1,0 +1,87 @@
+<h1>Checkout</h1>
+
+@if (cart.lines().length === 0) {
+  <p class="muted">Your cart is empty.</p>
+  <a class="btn" routerLink="/">Browse the catalog</a>
+} @else {
+  <div class="checkout-layout">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <section class="form-section card">
+        <h3>Contact</h3>
+        <div class="grid-2">
+          <div>
+            <label>Company name</label>
+            <input type="text" formControlName="companyName" autocomplete="organization" />
+          </div>
+          <div>
+            <label>Contact name</label>
+            <input type="text" formControlName="contactName" autocomplete="name" />
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" formControlName="email" autocomplete="email" />
+          </div>
+          <div>
+            <label>Phone</label>
+            <input type="tel" formControlName="phone" autocomplete="tel" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section card">
+        <h3>Shipping address</h3>
+        <div>
+          <label>Address line 1</label>
+          <input type="text" formControlName="line1" autocomplete="address-line1" />
+        </div>
+        <div>
+          <label>Address line 2</label>
+          <input type="text" formControlName="line2" autocomplete="address-line2" />
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>City</label>
+            <input type="text" formControlName="city" autocomplete="address-level2" />
+          </div>
+          <div>
+            <label>State / Region</label>
+            <input type="text" formControlName="state" autocomplete="address-level1" />
+          </div>
+          <div>
+            <label>Postal code</label>
+            <input type="text" formControlName="postalCode" autocomplete="postal-code" />
+          </div>
+          <div>
+            <label>Country</label>
+            <input type="text" formControlName="country" autocomplete="country-name" />
+          </div>
+        </div>
+      </section>
+
+      @if (errorMsg()) {
+        <p class="error">{{ errorMsg() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Placing order…' : 'Place order' }}
+      </button>
+    </form>
+
+    <aside class="summary card">
+      <h3>Order summary</h3>
+      <ul class="lines">
+        @for (line of cart.lines(); track line.product.id) {
+          <li>
+            <span class="name">{{ line.product.name }} <span class="muted">&times; {{ line.quantity }}</span></span>
+            <span>{{ line.product.priceCents * line.quantity | money }}</span>
+          </li>
+        }
+      </ul>
+      <div class="row total">
+        <span>Subtotal</span>
+        <span>{{ cart.subtotalCents() | money }}</span>
+      </div>
+      <p class="muted small">Shipping and taxes calculated after confirmation.</p>
+    </aside>
+  </div>
+}

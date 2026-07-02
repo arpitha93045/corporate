@@ -1,0 +1,48 @@
+<h1>Your cart</h1>
+
+@if (cart.lines().length === 0) {
+  <p class="muted">Your cart is empty.</p>
+  <a class="btn" routerLink="/">Browse the catalog</a>
+} @else {
+  <div class="cart-layout">
+    <ul class="cart-list">
+      @for (line of cart.lines(); track line.product.id) {
+        <li class="cart-item card">
+          <div class="thumb">
+            @if (line.product.imageUrl) {
+              <img [src]="line.product.imageUrl" [alt]="line.product.name" />
+            } @else {
+              <span>{{ line.product.name.charAt(0) }}</span>
+            }
+          </div>
+          <div class="item-body">
+            <a [routerLink]="['/products', line.product.slug]" class="item-name">{{ line.product.name }}</a>
+            <div class="muted small">{{ line.product.categoryName }}</div>
+            <div class="item-price">{{ line.product.priceCents | money }} each</div>
+          </div>
+          <div class="item-actions">
+            <label class="muted small">Qty</label>
+            <input type="number" min="1" [value]="line.quantity"
+                   (change)="change(line.product.id, ($any($event.target).value))" />
+            <button class="btn-secondary remove-btn" (click)="remove(line.product.id)">Remove</button>
+          </div>
+          <div class="line-total">{{ line.product.priceCents * line.quantity | money }}</div>
+        </li>
+      }
+    </ul>
+
+    <aside class="summary card">
+      <h3>Order summary</h3>
+      <div class="row">
+        <span>Items</span>
+        <span>{{ cart.count() }}</span>
+      </div>
+      <div class="row total">
+        <span>Subtotal</span>
+        <span>{{ cart.subtotalCents() | money }}</span>
+      </div>
+      <p class="muted small">Shipping and taxes calculated at checkout.</p>
+      <a class="btn" routerLink="/checkout">Proceed to checkout</a>
+    </aside>
+  </div>
+}

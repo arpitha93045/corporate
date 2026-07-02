@@ -1,0 +1,40 @@
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else if (notFound()) {
+  <h2>Product not found</h2>
+  <p><a routerLink="/">Back to catalog</a></p>
+} @else if (product(); as p) {
+  <a routerLink="/" class="back-link">&larr; Back to catalog</a>
+
+  <div class="detail">
+    <div class="image-wrap" [class.no-image]="!p.imageUrl">
+      @if (p.imageUrl) {
+        <img [src]="p.imageUrl" [alt]="p.name" />
+      } @else {
+        <span>{{ p.name.charAt(0) }}</span>
+      }
+    </div>
+
+    <div class="info">
+      <div class="muted small">{{ p.categoryName }}</div>
+      <h1>{{ p.name }}</h1>
+      <div class="price">{{ p.priceCents | money }}</div>
+      <p class="description">{{ p.description }}</p>
+
+      @if (!p.inStock) {
+        <p class="error">Currently out of stock.</p>
+      } @else {
+        <div class="qty-row">
+          <label>Quantity</label>
+          <div class="qty-control">
+            <button class="btn-secondary" (click)="changeQty(-1)" [disabled]="quantity() <= 1">&minus;</button>
+            <span class="qty-value">{{ quantity() }}</span>
+            <button class="btn-secondary" (click)="changeQty(1)">+</button>
+          </div>
+        </div>
+
+        <button class="add-btn" (click)="addToCart()">Add to cart</button>
+      }
+    </div>
+  </div>
+}

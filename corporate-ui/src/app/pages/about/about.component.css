@@ -1,0 +1,8 @@
+.hero { padding: 1rem 0 1.5rem; }
+.hero h1 { margin: 0 0 0.5rem; }
+.hero p { max-width: 60ch; color: var(--text-muted, #555); }
+.content { padding: 1.5rem; }
+.content h3 { margin-top: 1.5rem; }
+.content h3:first-of-type { margin-top: 0; }
+.content ol { padding-left: 1.25rem; }
+.content li { margin-bottom: 0.35rem; }

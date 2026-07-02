@@ -1,0 +1,45 @@
+@if (loading()) {
+  <p class="muted">Loading order…</p>
+} @else if (notFound()) {
+  <h2>Order not found</h2>
+  <p><a routerLink="/">Back to catalog</a></p>
+} @else if (order(); as o) {
+  <section class="hero card">
+    <div class="check">&check;</div>
+    <h1>Thank you, {{ o.contactName }}!</h1>
+    <p class="muted">Your order has been placed. We'll email a confirmation to <strong>{{ o.email }}</strong>.</p>
+    <div class="order-number">Order <strong>{{ o.orderNumber }}</strong></div>
+  </section>
+
+  <div class="details-grid">
+    <section class="card panel">
+      <h3>Items</h3>
+      <ul class="items">
+        @for (i of o.items; track i.productId) {
+          <li>
+            <span class="name">{{ i.productName }} <span class="muted">&times; {{ i.quantity }}</span></span>
+            <span>{{ i.lineTotalCents | money }}</span>
+          </li>
+        }
+      </ul>
+      <div class="row total">
+        <span>Subtotal</span>
+        <span>{{ o.subtotalCents | money }}</span>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <h3>Shipping to</h3>
+      <p class="address">
+        <strong>{{ o.companyName }}</strong><br />
+        {{ o.contactName }}<br />
+        {{ o.shippingAddress.line1 }}<br />
+        @if (o.shippingAddress.line2) { {{ o.shippingAddress.line2 }}<br /> }
+        {{ o.shippingAddress.city }}@if (o.shippingAddress.state) {, {{ o.shippingAddress.state }}} {{ o.shippingAddress.postalCode }}<br />
+        {{ o.shippingAddress.country }}
+      </p>
+    </section>
+  </div>
+
+  <p><a routerLink="/" class="btn-secondary btn">Continue shopping</a></p>
+}

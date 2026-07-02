@@ -1,0 +1,12 @@
+.form { display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem; }
+.form > div { display: flex; flex-direction: column; gap: 0.35rem; }
+.grid-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.grid-2 > div { display: flex; flex-direction: column; gap: 0.35rem; margin: 0; }
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+textarea { font-family: inherit; padding: 0.6rem; border: 1px solid var(--border); border-radius: 4px; }
+.thanks { padding: 1.5rem; }
+.thanks h3 { margin-top: 0; }
