@@ -115,6 +115,8 @@ corporate/
 
 All under `/api`. JSON only. Endpoints marked **auth** require a `Authorization: Bearer <jwt>` header obtained from `/api/auth/login` or `/api/auth/register`.
 
+Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/api/auth/login` 10/min, `/api/enquiries` 10/min. Over-limit requests get HTTP 429 with a `Retry-After` header. Behind a reverse proxy, set `RATELIMIT_TRUST_FORWARDED_FOR=true` so the filter reads the client IP from `X-Forwarded-For` instead of the proxy's socket address.
+
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET  | `/api/health` | – | Liveness check |

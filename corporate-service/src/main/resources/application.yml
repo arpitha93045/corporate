@@ -41,6 +41,8 @@ app:
     enabled: ${MAIL_ENABLED:false}
     from: ${MAIL_FROM:no-reply@corporate-gifting.local}
     enquiries-to: ${MAIL_ENQUIRIES_TO:enquiries@corporate-gifting.local}
+  ratelimit:
+    trust-forwarded-for: ${RATELIMIT_TRUST_FORWARDED_FOR:false}
 
 ---
 spring:
