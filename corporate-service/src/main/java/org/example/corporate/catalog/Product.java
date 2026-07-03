@@ -42,6 +42,9 @@ public class Product {
     @Column(name = "in_stock", nullable = false)
     private boolean inStock;
 
+    @Column(name = "stock_quantity", nullable = false)
+    private int stockQuantity;
+
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;
 
@@ -53,5 +56,7 @@ public class Product {
     public long getPriceCents() { return priceCents; }
     public String getImageUrl() { return imageUrl; }
     public boolean isInStock() { return inStock; }
+    public int getStockQuantity() { return stockQuantity; }
+    public void setStockQuantity(int v) { this.stockQuantity = v; }
     public Instant getCreatedAt() { return createdAt; }
 }

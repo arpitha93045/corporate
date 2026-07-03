@@ -44,6 +44,9 @@ public class OrderEntity {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "idempotency_key", length = 80)
+    private String idempotencyKey;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -86,6 +89,8 @@ public class OrderEntity {
     public void setSubtotalCents(long v) { this.subtotalCents = v; }
     public Long getUserId() { return userId; }
     public void setUserId(Long v) { this.userId = v; }
+    public String getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(String v) { this.idempotencyKey = v; }
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus v) { this.status = v; }
     public Instant getCreatedAt() { return createdAt; }

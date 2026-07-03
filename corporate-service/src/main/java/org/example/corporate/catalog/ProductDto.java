@@ -19,7 +19,7 @@ public record ProductDto(
                 p.getDescription(),
                 p.getPriceCents(),
                 p.getImageUrl(),
-                p.isInStock(),
+                p.isInStock() && p.getStockQuantity() > 0,
                 p.getCategory().getName(),
                 p.getCategory().getSlug()
         );

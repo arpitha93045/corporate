@@ -1,6 +1,7 @@
 package org.example.corporate.web;
 
 import jakarta.validation.ConstraintViolationException;
+import org.example.corporate.checkout.InsufficientStockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,6 +24,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
         return build(HttpStatus.BAD_REQUEST, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Map<String, Object>> outOfStock(InsufficientStockException e) {
+        return build(HttpStatus.CONFLICT, e.getMessage(), null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

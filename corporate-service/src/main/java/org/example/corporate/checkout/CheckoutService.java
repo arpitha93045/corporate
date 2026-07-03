@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class CheckoutService {
@@ -29,7 +28,14 @@ public class CheckoutService {
     }
 
     @Transactional
-    public OrderDto placeOrder(CheckoutRequest req, Long userId) {
+    public OrderDto placeOrder(CheckoutRequest req, Long userId, String idempotencyKey) {
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            var existing = orderRepo.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
+            if (existing.isPresent()) {
+                return OrderDto.from(existing.get());
+            }
+        }
+
         Map<Long, Integer> mergedQuantities = new HashMap<>();
         for (CheckoutRequest.Line line : req.items()) {
             mergedQuantities.merge(line.productId(), line.quantity(), Integer::sum);
@@ -39,6 +45,8 @@ public class CheckoutService {
         order.setOrderNumber(generateOrderNumber());
         order.setStatus(OrderStatus.PLACED);
         order.setUserId(userId);
+        order.setIdempotencyKey(
+                (idempotencyKey != null && !idempotencyKey.isBlank()) ? idempotencyKey : null);
 
         order.setCompanyName(req.customer().companyName());
         order.setContactName(req.customer().contactName());
@@ -57,12 +65,15 @@ public class CheckoutService {
             Long productId = entry.getKey();
             int qty = entry.getValue();
 
-            Product product = productRepo.findById(productId)
+            Product product = productRepo.findByIdForUpdate(productId)
                     .orElseThrow(() -> new NotFoundException("Product not found: " + productId));
 
-            if (!product.isInStock()) {
-                throw new IllegalArgumentException("Product is out of stock: " + product.getName());
+            if (product.getStockQuantity() < qty) {
+                throw new InsufficientStockException(
+                        "Not enough stock for %s (requested %d, available %d)"
+                                .formatted(product.getName(), qty, product.getStockQuantity()));
             }
+            product.setStockQuantity(product.getStockQuantity() - qty);
 
             long unitPrice = product.getPriceCents();
             long lineTotal = unitPrice * qty;
@@ -101,8 +112,7 @@ public class CheckoutService {
     }
 
     private String generateOrderNumber() {
-        int year = Year.now().getValue();
-        int suffix = ThreadLocalRandom.current().nextInt(100_000, 1_000_000);
-        return "CG-%d-%06d".formatted(year, suffix);
+        long seq = orderRepo.nextOrderNumberSeq();
+        return "CG-%d-%06d".formatted(Year.now().getValue(), seq);
     }
 }
