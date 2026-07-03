@@ -127,7 +127,7 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 | POST | `/api/auth/register` | – | Create an account; returns `{ token, expiresInSeconds, user }` |
 | POST | `/api/auth/login` | – | Sign in; returns the same shape |
 | GET  | `/api/auth/me` | **auth** | Current user summary |
-| POST | `/api/checkout` | **auth** | Place an order |
+| POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. |
 | GET  | `/api/orders/{orderNumber}` | **auth** | Fetch a placed order (owner only) |
 | POST | `/api/enquiries` | – | Submit a bulk-order enquiry; optionally emails ops if SMTP is configured |
 

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Category, CheckoutRequest, EnquiryRequest, Order, OrderSummary, Product } from '../models/models';
 
@@ -22,8 +22,11 @@ export class ApiService {
     return this.http.get<Product>(`${this.base}/products/${slug}`);
   }
 
-  checkout(req: CheckoutRequest): Observable<Order> {
-    return this.http.post<Order>(`${this.base}/checkout`, req);
+  checkout(req: CheckoutRequest, idempotencyKey?: string): Observable<Order> {
+    const headers = idempotencyKey
+      ? new HttpHeaders({ 'Idempotency-Key': idempotencyKey })
+      : undefined;
+    return this.http.post<Order>(`${this.base}/checkout`, req, { headers });
   }
 
   order(orderNumber: string): Observable<Order> {

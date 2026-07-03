@@ -44,6 +44,20 @@ app:
   ratelimit:
     trust-forwarded-for: ${RATELIMIT_TRUST_FORWARDED_FOR:false}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      # Never expose component-level details to anonymous callers — a bare
+      # UP/DOWN is enough for load balancers and k8s probes.
+      show-details: never
+      show-components: never
+      probes:
+        enabled: true
+
 ---
 spring:
   config:

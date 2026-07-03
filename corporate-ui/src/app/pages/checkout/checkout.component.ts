@@ -23,6 +23,8 @@ export class CheckoutComponent {
   protected submitting = signal<boolean>(false);
   protected errorMsg = signal<string | null>(null);
 
+  private idempotencyKey: string | null = null;
+
   protected form = this.fb.nonNullable.group({
     companyName: [this.auth.user()?.companyName ?? '', Validators.required],
     contactName: [this.auth.user()?.fullName ?? '', Validators.required],
@@ -50,6 +52,14 @@ export class CheckoutComponent {
     this.submitting.set(true);
     this.errorMsg.set(null);
 
+    // Reuse the same key across retries of the same checkout attempt so a
+    // network blip / user-hit-again doesn't create a duplicate order. The
+    // backend keys idempotency on (user_id, key), so a per-attempt UUID is
+    // enough. Cleared on success and on error paths that mean "start over".
+    if (!this.idempotencyKey) {
+      this.idempotencyKey = crypto.randomUUID();
+    }
+
     this.api.checkout({
       customer: {
         companyName: v.companyName,
@@ -63,13 +73,22 @@ export class CheckoutComponent {
         postalCode: v.postalCode, country: v.country
       },
       items: this.cart.lines().map(l => ({ productId: l.product.id, quantity: l.quantity }))
-    }).subscribe({
+    }, this.idempotencyKey).subscribe({
       next: order => {
+        this.idempotencyKey = null;
         this.cart.clear();
         this.router.navigate(['/order', order.orderNumber]);
       },
       error: err => {
         this.submitting.set(false);
+        // 4xx means the request itself is bad (validation, out of stock,
+        // unauthorized) — the user needs to change something, so a retry
+        // should be a fresh attempt with a new key. 5xx / network errors are
+        // transient; keep the key so retrying replays safely.
+        const status = err?.status ?? 0;
+        if (status >= 400 && status < 500) {
+          this.idempotencyKey = null;
+        }
         this.errorMsg.set(err?.error?.message ?? 'Could not place order. Please try again.');
       }
     });
