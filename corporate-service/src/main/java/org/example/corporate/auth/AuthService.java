@@ -22,7 +22,13 @@ public class AuthService {
     public AuthDtos.AuthResponse register(AuthDtos.RegisterRequest req) {
         String email = req.email().trim().toLowerCase();
         if (users.existsByEmail(email)) {
-            throw new IllegalArgumentException("An account with that email already exists.");
+            // Don't confirm whether the email is already registered — that lets
+            // anyone enumerate accounts. Return the same generic error as any
+            // other rejected registration. Note: this path returns faster than a
+            // successful registration (which pays for BCrypt), so a determined
+            // attacker with many samples could still enumerate via timing. The
+            // per-IP rate limit (5/min) is the primary defence.
+            throw new IllegalArgumentException("Could not create the account. Please check your details and try again.");
         }
         AppUser user = new AppUser();
         user.setEmail(email);
