@@ -60,7 +60,8 @@ DATABASE_URL=jdbc:postgresql://host:5432/corporate
 DATABASE_USER=...
 DATABASE_PASSWORD=...
 
-# Auth — required in prod; the default in application.yml is for local dev only.
+# Auth — required in prod. The app refuses to boot with --spring.profiles.active=prod
+# if JWT_SECRET is unset (the built-in dev default is rejected on the prod profile).
 JWT_SECRET=<at-least-32-bytes-of-random>     # maps to app.jwt.secret
 
 # Mail — optional. When app.mail.enabled=false (default) the server logs
