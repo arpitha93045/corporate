@@ -8,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.stripe.exception.StripeException;
+
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,6 +26,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
         return build(HttpStatus.BAD_REQUEST, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> conflict(IllegalStateException e) {
+        return build(HttpStatus.CONFLICT, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(StripeException.class)
+    public ResponseEntity<Map<String, Object>> stripe(StripeException e) {
+        return build(HttpStatus.BAD_GATEWAY, "Payment provider error", null);
     }
 
     @ExceptionHandler(InsufficientStockException.class)

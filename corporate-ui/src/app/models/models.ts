@@ -41,6 +41,8 @@ export interface OrderAddress {
 export interface Order {
   orderNumber: string;
   status: string;
+  paymentStatus: string | null;
+  paidAt: string | null;
   companyName: string;
   contactName: string;
   email: string;
@@ -49,6 +51,11 @@ export interface Order {
   items: OrderItem[];
   subtotalCents: number;
   createdAt: string;
+}
+
+export interface PaymentIntentResponse {
+  paymentIntentId: string;
+  clientSecret: string;
 }
 
 export interface CheckoutRequest {

@@ -9,6 +9,10 @@
     <h1>Thank you, {{ o.contactName }}!</h1>
     <p class="muted">Your order has been placed. We'll email a confirmation to <strong>{{ o.email }}</strong>.</p>
     <div class="order-number">Order <strong>{{ o.orderNumber }}</strong></div>
+    <div class="order-number">Status: <strong>{{ o.status }}</strong></div>
+    @if (o.status !== 'PAID' && o.status !== 'CANCELLED') {
+      <p><a [routerLink]="['/pay', o.orderNumber]" class="btn btn-primary">Pay now</a></p>
+    }
   </section>
 
   <div class="details-grid">

@@ -13,6 +13,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     Optional<OrderEntity> findByUserIdAndIdempotencyKey(Long userId, String idempotencyKey);
 
+    Optional<OrderEntity> findByPaymentIntentId(String paymentIntentId);
+
     @Query(value = "SELECT nextval('order_number_seq')", nativeQuery = true)
     long nextOrderNumberSeq();
 }

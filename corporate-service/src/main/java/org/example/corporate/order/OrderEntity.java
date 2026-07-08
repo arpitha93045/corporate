@@ -51,6 +51,15 @@ public class OrderEntity {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Column(name = "payment_intent_id")
+    private String paymentIntentId;
+
+    @Column(name = "payment_status", length = 40)
+    private String paymentStatus;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;
 
@@ -93,6 +102,12 @@ public class OrderEntity {
     public void setIdempotencyKey(String v) { this.idempotencyKey = v; }
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus v) { this.status = v; }
+    public String getPaymentIntentId() { return paymentIntentId; }
+    public void setPaymentIntentId(String v) { this.paymentIntentId = v; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String v) { this.paymentStatus = v; }
+    public Instant getPaidAt() { return paidAt; }
+    public void setPaidAt(Instant v) { this.paidAt = v; }
     public Instant getCreatedAt() { return createdAt; }
     public List<OrderItem> getItems() { return items; }
 }

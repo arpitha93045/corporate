@@ -1,0 +1,22 @@
+<section class="card panel">
+  <h1>Pay for your order</h1>
+
+  @if (loading()) {
+    <p class="muted">Preparing secure payment…</p>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+    <p><a routerLink="/" class="btn btn-secondary">Back to catalog</a></p>
+  } @else if (order(); as o) {
+    <div class="summary">
+      <div>Order <strong>{{ o.orderNumber }}</strong></div>
+      <div>Total: <strong>{{ o.subtotalCents | money }}</strong></div>
+    </div>
+
+    <div #paymentElement class="payment-element"></div>
+
+    <button class="btn btn-primary" (click)="pay()" [disabled]="submitting()">
+      {{ submitting() ? 'Processing…' : 'Pay now' }}
+    </button>
+    <p class="muted small">Test card: 4242 4242 4242 4242 · any future date · any CVC · any postal code.</p>
+  }
+</section>

@@ -43,6 +43,13 @@ app:
     enquiries-to: ${MAIL_ENQUIRIES_TO:enquiries@corporate-gifting.local}
   ratelimit:
     trust-forwarded-for: ${RATELIMIT_TRUST_FORWARDED_FOR:false}
+  stripe:
+    # Stripe test keys start "sk_test_"; live keys start "sk_live_". The default
+    # here is the sentinel value that PaymentsConfig refuses to boot with on
+    # the prod profile.
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_replace_me}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_replace_me}
+    currency: ${STRIPE_CURRENCY:inr}
 
 management:
   endpoints:

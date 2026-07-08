@@ -6,6 +6,8 @@ import java.util.List;
 public record OrderDto(
         String orderNumber,
         String status,
+        String paymentStatus,
+        Instant paidAt,
         String companyName,
         String contactName,
         String email,
@@ -22,6 +24,8 @@ public record OrderDto(
         return new OrderDto(
                 o.getOrderNumber(),
                 o.getStatus().name(),
+                o.getPaymentStatus(),
+                o.getPaidAt(),
                 o.getCompanyName(),
                 o.getContactName(),
                 o.getEmail(),

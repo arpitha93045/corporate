@@ -43,6 +43,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/enquiries").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/checkout").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/orders", "/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
+                .requestMatchers("/api/payments/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

@@ -77,7 +77,7 @@ export class CheckoutComponent {
       next: order => {
         this.idempotencyKey = null;
         this.cart.clear();
-        this.router.navigate(['/order', order.orderNumber]);
+        this.router.navigate(['/pay', order.orderNumber]);
       },
       error: err => {
         this.submitting.set(false);

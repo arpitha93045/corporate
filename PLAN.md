@@ -4,6 +4,23 @@ A B2B corporate gifting platform. First milestone: a working MVP that lets a cor
 
 ---
 
+## Status snapshot (as of 2026-07-08)
+
+MVP shipped, plus several Phase 2 items landed early. What's actually in the repo today:
+
+**Done (beyond original MVP):**
+- Catalog + cart + checkout end-to-end (browser-verified).
+- JWT auth with signup/login; checkout requires login, catalog stays open.
+- Users table wired to orders (`orders.user_id`), order history page (`/orders`).
+- Enquiries feature — persist to DB + optional SMTP email via `MailService`.
+- Hardening: order-number sequence, checkout idempotency (`Idempotency-Key` header), stock decrement under row lock, rate-limit on anonymous POSTs, BCrypt cost bump + 72-char password cap, refuse to boot on `prod` profile with the built-in dev JWT secret, hidden email-exists on signup.
+- Actuator `/health` endpoint.
+- Flyway migrations V1–V6: init, seed, users, enquiries, expanded catalog, ordering/inventory.
+
+**Still pending** — see §9 (Phase 2) and §11 (AI Agent) below.
+
+---
+
 ## 1. Stack
 
 | Layer       | Choice                                         | Why                                                                |
@@ -191,18 +208,20 @@ The Angular dev server will use a `proxy.conf.json` so the browser sees a single
 
 ---
 
-## 9. Phase 2 (post-MVP, not built yet)
+## 9. Phase 2 — what's left
 
-For visibility only — these are the natural next steps once MVP is live:
+Legend: ✅ done · 🟡 partial · ⬜ not started.
 
-- **Payments**: Stripe Checkout or Payment Intents; order status moves `PLACED → PAID → FULFILLED`.
-- **Customer accounts**: register/login (Spring Security + JWT), order history.
-- **Admin panel**: protected `/admin` routes for managing products, viewing orders, updating fulfillment status.
-- **Email**: order confirmation + status updates via a transactional provider (Postmark, SES).
-- **Corporate features**: bulk-order uploads, custom branding/personalization, RFQ workflow, net-30 invoicing.
-- **Search**: a real search box (Postgres FTS first, Elastic later if needed).
-- **Observability**: structured logs, basic metrics (Micrometer + Prometheus), error tracking (Sentry).
-- **Deployment**: containerize backend + frontend, deploy behind a reverse proxy with TLS.
+- ✅ **Customer accounts**: JWT signup/login, `orders.user_id`, `/orders` history page.
+- ✅ **Enquiries + basic email**: `EnquiryService` + `MailService` (SMTP optional).
+- ⬜ **Payments**: Stripe Checkout or Payment Intents; extend order status `PLACED → PAID → FULFILLED → CANCELLED`. Webhook handler + idempotent status transitions. This is the single biggest gap for going live.
+- ⬜ **Admin panel**: protected `/admin` routes (role = `ADMIN` — the `Role` enum already exists). Screens: product CRUD, order list + fulfillment status update, enquiry inbox.
+- 🟡 **Transactional email**: SMTP works for enquiries; still need order-confirmation email on checkout + status-change emails. Consider Postmark/SES for prod deliverability.
+- ⬜ **Corporate features**: bulk-order CSV upload, custom branding/personalization (logo/message per line item), RFQ workflow, net-30 invoicing with PO numbers.
+- ⬜ **Search**: Postgres FTS on product name + description; category + price filters on the catalog page.
+- ⬜ **Observability**: structured JSON logs, Micrometer + Prometheus metrics, Sentry (or similar) for error tracking. `/health` is in; `/metrics` isn't.
+- ⬜ **Deployment**: Dockerfiles for backend + frontend, one-command compose for prod-like stack, reverse proxy with TLS (Caddy or nginx + certbot), managed Postgres.
+- ⬜ **CI**: GitHub Actions running `mvn verify` + `ng build` + `ng test` on PRs. None today.
 
 ---
 
@@ -215,3 +234,57 @@ These don't block MVP but will need answers before going live:
 - Inventory model — single warehouse or multiple? Stock tracking granularity?
 - Tax handling — flat rate per region, or integrate Avalara / TaxJar?
 - Image hosting — DB column with URLs only (MVP) vs. an object store (S3) with upload pipeline.
+
+---
+
+## 11. Corporate Gifting AI Agent (proposed)
+
+The natural differentiator for a B2B gifting site: buyers don't want to browse a grid, they want to describe an occasion ("30 clients, Diwali, budget ₹2,000 each, half of them are vegetarian") and get a short list of viable options. An AI agent turns free-form intent into a curated cart.
+
+### 11.1 What the agent does
+
+Three surfaces, ordered by build cost:
+
+1. **Concierge chat (MVP for the agent)** — a chat drawer on the site. User describes the gifting need; agent asks 1–2 clarifying questions, then proposes 3–5 products with reasoning ("this fits because…"), quantities, and estimated total. One click adds the proposed selection to the cart.
+2. **Bulk-recipient assistant** — user pastes/uploads a recipient list (name, city, dietary/cultural notes). Agent produces a per-recipient gift plan and a consolidated PO. Ties into the corporate bulk-order feature already listed in §9.
+3. **Post-purchase follow-up** — agent drafts thank-you notes, tracks delivery status, and suggests reorder cadence for recurring occasions (client anniversaries, employee milestones).
+
+### 11.2 Architecture sketch
+
+- **Model**: Claude (Sonnet 4.6 for cost/latency balance; Opus 4.7 for the bulk-recipient reasoning path if quality matters more than latency). Server-side calls only — never expose the API key to the browser.
+- **Prompt caching**: cache the system prompt + product catalog snapshot (rebuilt on catalog change). This is a natural fit — the catalog is stable per session, prompts are long, and hit rates should be high.
+- **Tool use** (this is the real design work — pick tools the model can chain):
+  - `search_products(query, filters)` → returns top-N products with price + stock.
+  - `get_product(slug)` → full detail incl. tags (dietary, occasion, region).
+  - `estimate_total(items[])` → server-side pricing (never trust the model's math).
+  - `create_draft_cart(items[])` → returns a draft cart id the frontend can adopt with one click.
+  - `create_enquiry(payload)` → escalation path to a human (reuses existing `EnquiryService`).
+- **State**: conversation history in Postgres keyed by user id (or anonymous session id). Nothing sensitive in the prompt.
+- **Guardrails**:
+  - Model never sets prices — it selects products, the server prices.
+  - Cap items per suggestion (e.g., 20) and enforce stock at cart-adoption time (existing checkout stock lock already covers race).
+  - Log every tool call + final suggestion for audit.
+
+### 11.3 Data additions
+
+To make the agent actually good, the catalog needs richer metadata than what V1–V6 provides:
+
+- `product.tags` (jsonb or a join table): occasion (`diwali`, `onboarding`, `anniversary`), dietary (`vegetarian`, `vegan`, `jain`, `halal`), audience (`clients`, `employees`), price band.
+- `product.description` becomes structured enough to feed the model (short pitch + bullet features).
+- Optional: an `agent_conversation` + `agent_message` pair of tables for history, and `agent_tool_call` for auditability.
+
+### 11.4 Build order for the agent
+
+1. **Backend tool endpoints** — implement the 5 tools above as internal REST endpoints under `/api/agent/tools/*`, secured so only the agent controller can call them (or make them method calls, not HTTP — simpler).
+2. **Catalog metadata migration** — V7 adds tags + structured descriptions; backfill a few dozen products manually.
+3. **Agent controller** — `POST /api/agent/chat` streams SSE tokens back; server orchestrates the Claude call + tool loop. Use the `claude-api` skill's caching patterns.
+4. **Frontend chat drawer** — right-side slide-out on every page; persists across route changes; "Add all to cart" button on final suggestion.
+5. **Bulk-recipient flow** — separate `/gift-plan` page: paste CSV, agent produces a table, export as PO.
+6. **Metrics** — % of chats that end in a checkout, avg tokens/chat, tool-call error rate. Feeds into whether the feature is earning its keep.
+
+### 11.5 What to decide before starting
+
+- Is the agent gated behind login, or available to anonymous browsers (with rate limits)? Anonymous = better discovery, higher API cost.
+- Does the agent get access to a user's past orders as context? Powerful for repeat clients, but a privacy call.
+- Do we want the agent to be able to place an order end-to-end (with a final confirm click), or only *propose* a cart? Start with propose-only; automating the checkout adds a whole class of edge cases.
+- Human-in-the-loop for high-value orders? A ₹5L cart proposed by the agent probably shouldn't auto-checkout even if we build that path.

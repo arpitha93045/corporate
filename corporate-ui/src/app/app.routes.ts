@@ -24,6 +24,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/order-confirmation/order-confirmation.component').then(m => m.OrderConfirmationComponent)
   },
   {
+    path: 'pay/:orderNumber',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/pay/pay.component').then(m => m.PayComponent)
+  },
+  {
     path: 'account/orders',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/orders/orders.component').then(m => m.OrdersComponent)

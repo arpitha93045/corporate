@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Category, CheckoutRequest, EnquiryRequest, Order, OrderSummary, Product } from '../models/models';
+import { Category, CheckoutRequest, EnquiryRequest, Order, OrderSummary, PaymentIntentResponse, Product } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -39,5 +39,9 @@ export class ApiService {
 
   submitEnquiry(req: EnquiryRequest): Observable<unknown> {
     return this.http.post(`${this.base}/enquiries`, req);
+  }
+
+  createPaymentIntent(orderNumber: string): Observable<PaymentIntentResponse> {
+    return this.http.post<PaymentIntentResponse>(`${this.base}/payments/intent/${orderNumber}`, {});
   }
 }
