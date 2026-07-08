@@ -16,6 +16,9 @@
       </a>
       @if (auth.isAuthenticated()) {
         <a routerLink="/account/orders" routerLinkActive="active">My orders</a>
+        @if (auth.user()?.role === 'ADMIN') {
+          <a routerLink="/admin" routerLinkActive="active">Admin</a>
+        }
         <span class="user-chip" title="{{ auth.user()?.email }}">
           {{ auth.user()?.fullName }}
         </span>

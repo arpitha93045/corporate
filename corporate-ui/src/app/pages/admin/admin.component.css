@@ -1,0 +1,208 @@
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-head h1 {
+  margin: 0;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.admin-tabs .tab {
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #555;
+  border-bottom: 2px solid transparent;
+}
+
+.admin-tabs .tab.active {
+  color: #111;
+  border-bottom-color: #111;
+  font-weight: 600;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.grid th,
+.grid td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid #efefef;
+  text-align: left;
+  vertical-align: top;
+}
+
+.grid th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+
+.grid td.num,
+.grid th.num {
+  text-align: right;
+}
+
+.grid td.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.grid td.msg {
+  max-width: 24rem;
+  white-space: pre-wrap;
+}
+
+.muted {
+  color: #888;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #1a4fb3;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.link-btn.danger {
+  color: #b3261e;
+}
+
+.editor {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed #d9d9d9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.editor h3 {
+  margin: 0;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  color: #333;
+}
+
+.editor label.full {
+  grid-column: 1 / -1;
+}
+
+.editor input,
+.editor select,
+.editor textarea {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btn {
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #111;
+}
+
+.error {
+  background: #fdecea;
+  color: #8a1c14;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #eee;
+  color: #333;
+}
+
+.pill-placed        { background: #eef4ff; color: #1a3f8f; }
+.pill-paid          { background: #e8f6ee; color: #1c7a3e; }
+.pill-fulfilled     { background: #ecf0f1; color: #333; }
+.pill-cancelled     { background: #fdecea; color: #8a1c14; }
+.pill-pay-succeeded { background: #e8f6ee; color: #1c7a3e; }
+.pill-pay-requires_payment_method,
+.pill-pay-requires_action,
+.pill-pay-processing { background: #fff5db; color: #7a5a00; }
+.pill-pay-failed    { background: #fdecea; color: #8a1c14; }

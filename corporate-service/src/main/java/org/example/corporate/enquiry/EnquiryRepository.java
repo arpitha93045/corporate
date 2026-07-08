@@ -2,4 +2,8 @@ package org.example.corporate.enquiry;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EnquiryRepository extends JpaRepository<Enquiry, Long> {}
+import java.util.List;
+
+public interface EnquiryRepository extends JpaRepository<Enquiry, Long> {
+    List<Enquiry> findAllByOrderByCreatedAtDesc();
+}

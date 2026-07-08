@@ -50,6 +50,10 @@ app:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_replace_me}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_replace_me}
     currency: ${STRIPE_CURRENCY:inr}
+  admin:
+    # If set, the user with this email is promoted to ADMIN on each boot.
+    # They must have signed up first — this bootstrap only bumps the role.
+    email: ${APP_ADMIN_EMAIL:}
 
 management:
   endpoints:

@@ -11,6 +11,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     List<OrderEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    List<OrderEntity> findAllByOrderByCreatedAtDesc();
+
     Optional<OrderEntity> findByUserIdAndIdempotencyKey(Long userId, String idempotencyKey);
 
     Optional<OrderEntity> findByPaymentIntentId(String paymentIntentId);

@@ -214,8 +214,8 @@ Legend: ✅ done · 🟡 partial · ⬜ not started.
 
 - ✅ **Customer accounts**: JWT signup/login, `orders.user_id`, `/orders` history page.
 - ✅ **Enquiries + basic email**: `EnquiryService` + `MailService` (SMTP optional).
-- ⬜ **Payments**: Stripe Checkout or Payment Intents; extend order status `PLACED → PAID → FULFILLED → CANCELLED`. Webhook handler + idempotent status transitions. This is the single biggest gap for going live.
-- ⬜ **Admin panel**: protected `/admin` routes (role = `ADMIN` — the `Role` enum already exists). Screens: product CRUD, order list + fulfillment status update, enquiry inbox.
+- ✅ **Payments**: Stripe Payment Intents; order status `PLACED → PAID → FULFILLED → CANCELLED`. Webhook handler with signature verification; idempotent status transitions via `payment_intent_id`.
+- ✅ **Admin panel**: `/admin` route guarded by `adminGuard`; backend `/api/admin/**` requires `ROLE_ADMIN`. Product CRUD, order list + status transitions (server-enforced allowed set), enquiry inbox. First admin bootstrapped via `APP_ADMIN_EMAIL` env var.
 - 🟡 **Transactional email**: SMTP works for enquiries; still need order-confirmation email on checkout + status-change emails. Consider Postmark/SES for prod deliverability.
 - ⬜ **Corporate features**: bulk-order CSV upload, custom branding/personalization (logo/message per line item), RFQ workflow, net-30 invoicing with PO numbers.
 - ⬜ **Search**: Postgres FTS on product name + description; category + price filters on the catalog page.

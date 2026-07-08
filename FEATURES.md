@@ -52,6 +52,15 @@ Last updated: 2026-07-08
   5. Sign up → add to cart → checkout → land on `/pay/…` → use card `4242 4242 4242 4242`, any future date, any CVC. Order flips to `PAID` after webhook fires.
   6. Failure card: `4000 0000 0000 0002`. Order stays `PLACED`, error shown inline.
 
+### Admin panel
+- Route-guarded backend surface: any `/api/admin/**` endpoint requires `ROLE_ADMIN`; the frontend `/admin` route uses `adminGuard` and the nav link only renders for admin users.
+- First admin is bootstrapped on boot: set `APP_ADMIN_EMAIL` to the email of an already-signed-up user, and `AdminBootstrap` promotes them to `ADMIN` on the next start. Idempotent, promote-only (never demotes).
+- Product CRUD: `GET/POST /api/admin/products`, `PUT/DELETE /api/admin/products/{id}`. Deleting a product keeps historical `order_item` rows intact (snapshot preserved).
+- Category endpoints: `GET/POST /api/admin/categories` (no delete — categories are structural).
+- Order management: `GET /api/admin/orders`, `GET /api/admin/orders/{orderNumber}`, `PATCH /api/admin/orders/{orderNumber}/status`. Allowed transitions enforced server-side: `PLACED → CANCELLED`, `PAID → FULFILLED | CANCELLED`. Terminal states reject further changes with 409.
+- Enquiry inbox: `GET /api/admin/enquiries`, `PATCH /api/admin/enquiries/{id}/status` (statuses: `NEW`, `IN_PROGRESS`, `CLOSED`).
+- Frontend `/admin` page: tabbed UI (Products / Orders / Enquiries), inline product editor with rupee ↔ paise conversion, order status buttons showing only legal transitions, enquiry status dropdown.
+
 ### Hardening / Ops
 - Rate-limit on anonymous POST endpoints per client IP.
 - Actuator `/health` for liveness.
@@ -64,7 +73,6 @@ Last updated: 2026-07-08
 
 ## Not built yet (see PLAN.md §9, §11)
 
-- Admin panel (product CRUD, order fulfillment, enquiry inbox).
 - Order-confirmation transactional email.
 - Corporate features: bulk-order CSV upload, custom branding, RFQ, net-30 invoicing.
 - Search (Postgres FTS).
@@ -91,6 +99,17 @@ Last updated: 2026-07-08
 | POST   | `/api/enquiries`                 | none  | Submit an enquiry                   |
 | POST   | `/api/payments/intent/{orderNumber}` | user  | Create/retrieve Stripe PaymentIntent |
 | POST   | `/api/payments/webhook`          | Stripe signature | Stripe payment_intent events |
+| GET    | `/api/admin/products`            | admin | List all products                    |
+| POST   | `/api/admin/products`            | admin | Create product                       |
+| PUT    | `/api/admin/products/{id}`       | admin | Update product                       |
+| DELETE | `/api/admin/products/{id}`       | admin | Delete product (order snapshots kept) |
+| GET    | `/api/admin/categories`          | admin | List categories                      |
+| POST   | `/api/admin/categories`          | admin | Create category                      |
+| GET    | `/api/admin/orders`              | admin | List all orders                      |
+| GET    | `/api/admin/orders/{orderNumber}`| admin | Order detail                         |
+| PATCH  | `/api/admin/orders/{orderNumber}/status` | admin | Transition order status      |
+| GET    | `/api/admin/enquiries`           | admin | List all enquiries                   |
+| PATCH  | `/api/admin/enquiries/{id}/status` | admin | Update enquiry status              |
 
 ## Database migrations
 

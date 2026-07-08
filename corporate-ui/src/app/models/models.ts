@@ -116,3 +116,61 @@ export interface OrderSummary {
   itemCount: number;
   createdAt: string;
 }
+
+// ---- admin ----
+
+export interface AdminProduct {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  priceCents: number;
+  imageUrl: string | null;
+  inStock: boolean;
+  stockQuantity: number;
+  categoryName: string;
+  categorySlug: string;
+}
+
+export interface ProductUpsert {
+  name: string;
+  slug: string;
+  description: string;
+  priceCents: number;
+  imageUrl: string | null;
+  stockQuantity: number;
+  categorySlug: string;
+}
+
+export interface CategoryUpsert {
+  name: string;
+  slug: string;
+}
+
+export interface AdminOrderSummary {
+  orderNumber: string;
+  status: string;
+  paymentStatus: string | null;
+  paidAt: string | null;
+  subtotalCents: number;
+  itemCount: number;
+  companyName: string;
+  contactName: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface AdminEnquiry {
+  id: number;
+  name: string;
+  email: string;
+  companyName: string | null;
+  phone: string | null;
+  message: string;
+  estimatedQuantity: number | null;
+  occasion: string | null;
+  eventDate: string | null;
+  budgetRange: string | null;
+  status: string;
+  createdAt: string;
+}

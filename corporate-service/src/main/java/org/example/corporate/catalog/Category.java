@@ -28,6 +28,8 @@ public class Category {
 
     public Long getId() { return id; }
     public String getName() { return name; }
+    public void setName(String v) { this.name = v; }
     public String getSlug() { return slug; }
+    public void setSlug(String v) { this.slug = v; }
     public Instant getCreatedAt() { return createdAt; }
 }

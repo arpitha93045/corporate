@@ -1,0 +1,228 @@
+<section class="admin">
+  <header class="admin-head">
+    <h1>Admin</h1>
+    <nav class="admin-tabs">
+      <button type="button"
+              class="tab"
+              [class.active]="tab() === 'products'"
+              (click)="switchTab('products')">Products</button>
+      <button type="button"
+              class="tab"
+              [class.active]="tab() === 'orders'"
+              (click)="switchTab('orders')">Orders</button>
+      <button type="button"
+              class="tab"
+              [class.active]="tab() === 'enquiries'"
+              (click)="switchTab('enquiries')">Enquiries</button>
+    </nav>
+  </header>
+
+  @if (error(); as e) {
+    <p class="error">{{ e }}</p>
+  }
+
+  @if (tab() === 'products') {
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Products</h2>
+        <button type="button" class="btn" (click)="startNewProduct()">New product</button>
+      </div>
+
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Category</th>
+            <th class="num">Price</th>
+            <th class="num">Stock</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products(); track p.id) {
+            <tr>
+              <td>{{ p.name }}</td>
+              <td class="mono">{{ p.slug }}</td>
+              <td>{{ p.categoryName }}</td>
+              <td class="num">{{ p.priceCents | money }}</td>
+              <td class="num">{{ p.stockQuantity }}</td>
+              <td class="row-actions">
+                <button type="button" class="link-btn" (click)="startEditProduct(p)">Edit</button>
+                <button type="button" class="link-btn danger" (click)="deleteProduct(p)">Delete</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muted">No products yet.</td></tr>
+          }
+        </tbody>
+      </table>
+
+      @if (editing() !== null || draft().name !== '' || draft().slug !== '') {
+        <form class="editor" (ngSubmit)="saveProduct()">
+          <h3>{{ editing() ? 'Edit product' : 'New product' }}</h3>
+          <div class="grid-2">
+            <label>
+              Name
+              <input type="text" required [ngModel]="draft().name"
+                     (ngModelChange)="draft.update(d => ({ ...d, name: $event }))"
+                     name="name" />
+            </label>
+            <label>
+              Slug
+              <input type="text" required [ngModel]="draft().slug"
+                     (ngModelChange)="draft.update(d => ({ ...d, slug: $event }))"
+                     name="slug" />
+            </label>
+            <label>
+              Category
+              <select required [ngModel]="draft().categorySlug"
+                      (ngModelChange)="draft.update(d => ({ ...d, categorySlug: $event }))"
+                      name="categorySlug">
+                @for (c of categories(); track c.id) {
+                  <option [value]="c.slug">{{ c.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Price (₹)
+              <input type="number" min="0" step="0.01" required
+                     [ngModel]="priceRupees()"
+                     (ngModelChange)="priceRupees.set($event)"
+                     name="priceRupees" />
+            </label>
+            <label>
+              Stock
+              <input type="number" min="0" step="1" required
+                     [ngModel]="draft().stockQuantity"
+                     (ngModelChange)="draft.update(d => ({ ...d, stockQuantity: +$event }))"
+                     name="stockQuantity" />
+            </label>
+            <label>
+              Image URL
+              <input type="url" [ngModel]="draft().imageUrl ?? ''"
+                     (ngModelChange)="draft.update(d => ({ ...d, imageUrl: $event }))"
+                     name="imageUrl" />
+            </label>
+          </div>
+          <label class="full">
+            Description
+            <textarea rows="4" required [ngModel]="draft().description"
+                      (ngModelChange)="draft.update(d => ({ ...d, description: $event }))"
+                      name="description"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+            <button type="button" class="btn ghost" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+
+  @if (tab() === 'orders') {
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Orders</h2>
+        <button type="button" class="btn ghost" (click)="loadOrders()">Refresh</button>
+      </div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Placed</th>
+            <th>Company</th>
+            <th>Contact</th>
+            <th class="num">Items</th>
+            <th class="num">Total</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of orders(); track o.orderNumber) {
+            <tr>
+              <td class="mono">{{ o.orderNumber }}</td>
+              <td>{{ o.createdAt | date:'medium' }}</td>
+              <td>{{ o.companyName }}</td>
+              <td>
+                {{ o.contactName }}
+                <br />
+                <small class="muted">{{ o.email }}</small>
+              </td>
+              <td class="num">{{ o.itemCount }}</td>
+              <td class="num">{{ o.subtotalCents | money }}</td>
+              <td>
+                <span class="pill pill-{{ o.status.toLowerCase() }}">{{ o.status }}</span>
+              </td>
+              <td>
+                @if (o.paymentStatus) {
+                  <span class="pill pill-pay-{{ o.paymentStatus.toLowerCase() }}">{{ o.paymentStatus }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td class="row-actions">
+                @for (t of availableTransitions(o.status); track t) {
+                  <button type="button" class="link-btn" (click)="changeOrderStatus(o, t)">→ {{ t }}</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="9" class="muted">No orders yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tab() === 'enquiries') {
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Enquiries</h2>
+        <button type="button" class="btn ghost" (click)="loadEnquiries()">Refresh</button>
+      </div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>Received</th>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Message</th>
+            <th class="num">Qty</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of enquiries(); track e.id) {
+            <tr>
+              <td>{{ e.createdAt | date:'medium' }}</td>
+              <td>
+                {{ e.name }}
+                <br />
+                <small class="muted">{{ e.email }}</small>
+              </td>
+              <td>{{ e.companyName ?? '—' }}</td>
+              <td class="msg">{{ e.message }}</td>
+              <td class="num">{{ e.estimatedQuantity ?? '—' }}</td>
+              <td>
+                <select [ngModel]="e.status"
+                        (ngModelChange)="changeEnquiryStatus(e, $event)"
+                        name="status-{{ e.id }}">
+                  <option value="NEW">NEW</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="CLOSED">CLOSED</option>
+                </select>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muted">No enquiries yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

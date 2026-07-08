@@ -50,12 +50,19 @@ public class Product {
 
     public Long getId() { return id; }
     public Category getCategory() { return category; }
+    public void setCategory(Category v) { this.category = v; }
     public String getName() { return name; }
+    public void setName(String v) { this.name = v; }
     public String getSlug() { return slug; }
+    public void setSlug(String v) { this.slug = v; }
     public String getDescription() { return description; }
+    public void setDescription(String v) { this.description = v; }
     public long getPriceCents() { return priceCents; }
+    public void setPriceCents(long v) { this.priceCents = v; }
     public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String v) { this.imageUrl = v; }
     public boolean isInStock() { return inStock; }
+    public void setInStock(boolean v) { this.inStock = v; }
     public int getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(int v) { this.stockQuantity = v; }
     public Instant getCreatedAt() { return createdAt; }
