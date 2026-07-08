@@ -61,6 +61,10 @@ Last updated: 2026-07-08
 - Enquiry inbox: `GET /api/admin/enquiries`, `PATCH /api/admin/enquiries/{id}/status` (statuses: `NEW`, `IN_PROGRESS`, `CLOSED`).
 - Frontend `/admin` page: tabbed UI (Products / Orders / Enquiries), inline product editor with rupee ↔ paise conversion, order status buttons showing only legal transitions, enquiry status dropdown.
 
+### Transactional email
+- Enquiry notification email (existing).
+- **Order confirmation email**: sent to the buyer's email when Stripe `payment_intent.succeeded` fires and the order transitions to `PAID`. Plain-text template rendered by `OrderMailFormatter` (pure function, unit tested) — includes order number, line items with quantities, INR total, and shipping address. Sending is guarded by `app.mail.enabled`, so with SMTP disabled the send is logged as a would-have-sent and never fails the webhook. Idempotent by construction: the send only runs inside the `status != PAID` branch, so duplicate webhook deliveries don't spam the buyer.
+
 ### Hardening / Ops
 - Rate-limit on anonymous POST endpoints per client IP.
 - Actuator `/health` for liveness.
@@ -73,7 +77,6 @@ Last updated: 2026-07-08
 
 ## Not built yet (see PLAN.md §9, §11)
 
-- Order-confirmation transactional email.
 - Corporate features: bulk-order CSV upload, custom branding, RFQ, net-30 invoicing.
 - Search (Postgres FTS).
 - Observability (structured logs, metrics, error tracking).

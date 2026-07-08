@@ -5,7 +5,9 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.net.Webhook;
+import org.example.corporate.mail.MailService;
 import org.example.corporate.order.OrderEntity;
+import org.example.corporate.order.OrderMailFormatter;
 import org.example.corporate.order.OrderRepository;
 import org.example.corporate.order.OrderStatus;
 import org.slf4j.Logger;
@@ -72,9 +74,13 @@ class StripeWebhookController {
     @Service
     static class WebhookProcessor {
         private final OrderRepository orderRepo;
+        private final MailService mail;
+        private final OrderMailFormatter formatter;
 
-        WebhookProcessor(OrderRepository orderRepo) {
+        WebhookProcessor(OrderRepository orderRepo, MailService mail, OrderMailFormatter formatter) {
             this.orderRepo = orderRepo;
+            this.mail = mail;
+            this.formatter = formatter;
         }
 
         @Transactional
@@ -89,6 +95,7 @@ class StripeWebhookController {
                 order.setStatus(OrderStatus.PAID);
                 order.setPaidAt(Instant.now());
                 log.info("Order {} marked PAID (pi={})", order.getOrderNumber(), pi.getId());
+                mail.sendIfEnabled(order.getEmail(), formatter.subject(order), formatter.body(order));
             }
         }
 

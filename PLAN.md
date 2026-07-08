@@ -216,7 +216,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started.
 - ✅ **Enquiries + basic email**: `EnquiryService` + `MailService` (SMTP optional).
 - ✅ **Payments**: Stripe Payment Intents; order status `PLACED → PAID → FULFILLED → CANCELLED`. Webhook handler with signature verification; idempotent status transitions via `payment_intent_id`.
 - ✅ **Admin panel**: `/admin` route guarded by `adminGuard`; backend `/api/admin/**` requires `ROLE_ADMIN`. Product CRUD, order list + status transitions (server-enforced allowed set), enquiry inbox. First admin bootstrapped via `APP_ADMIN_EMAIL` env var.
-- 🟡 **Transactional email**: SMTP works for enquiries; still need order-confirmation email on checkout + status-change emails. Consider Postmark/SES for prod deliverability.
+- ✅ **Transactional email**: SMTP works for enquiries and order-confirmation on payment success. `OrderMailFormatter` renders a plain-text template; send is guarded by `app.mail.enabled` and only fires on the first `PLACED → PAID` transition (idempotent under webhook retries). Prod deliverability still wants Postmark/SES.
 - ⬜ **Corporate features**: bulk-order CSV upload, custom branding/personalization (logo/message per line item), RFQ workflow, net-30 invoicing with PO numbers.
 - ⬜ **Search**: Postgres FTS on product name + description; category + price filters on the catalog page.
 - ⬜ **Observability**: structured JSON logs, Micrometer + Prometheus metrics, Sentry (or similar) for error tracking. `/health` is in; `/metrics` isn't.
