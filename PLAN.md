@@ -257,8 +257,8 @@ Three surfaces, ordered by build cost:
   - `search_products(query, filters)` → returns top-N products with price + stock.
   - `get_product(slug)` → full detail incl. tags (dietary, occasion, region).
   - `estimate_total(items[])` → server-side pricing (never trust the model's math).
-  - `create_draft_cart(items[])` → returns a draft cart id the frontend can adopt with one click.
-  - `create_enquiry(payload)` → escalation path to a human (reuses existing `EnquiryService`).
+  - ✅ `create_draft_cart(items[])` → server-prices via `estimate_total`, persists a `draft_cart` row, returns an opaque token the frontend adopts with one click. Propose-only.
+  - ✅ `create_enquiry(payload)` → escalation path to a human (reuses existing `EnquiryService.submit`).
 - **State**: conversation history in Postgres keyed by user id (or anonymous session id). Nothing sensitive in the prompt.
 - **Guardrails**:
   - Model never sets prices — it selects products, the server prices.
@@ -275,9 +275,9 @@ To make the agent actually good, the catalog needs richer metadata than what V1�
 
 ### 11.4 Build order for the agent
 
-1. ✅ **Backend tool methods** — `AgentTools` service exposes `searchProducts`, `getProduct`, `estimateTotal` as plain Java methods (not REST — avoids a public tool API surface). `createDraftCart` and `createEnquiry` come with slice B.
+1. ✅ **Backend tool methods** — `AgentTools` service exposes `searchProducts`, `getProduct`, `estimateTotal` as plain Java methods (not REST — avoids a public tool API surface). `createDraftCart` and `createEnquiry` land in slice B tail: `create_draft_cart` is backed by a persisted `draft_cart` table (controller → service → repository → DB) with a `GET /api/agent/draft-cart/{token}` adopt endpoint; `create_enquiry` reuses `EnquiryService.submit`.
 2. ✅ **Catalog metadata migration** — V8 adds `product_tag` (kind:value scheme: `occasion:*`, `dietary:*`, `audience:*`, `band:*`). All 28 products hand-tagged; bands derived from price.
-3. ✅ **Agent controller** — `POST /api/agent/chat` streams SSE events back; server orchestrates the Claude call + bounded tool loop over the slice-A tools. Anonymous access with per-IP rate limit (8/min). Gated on `app.agent.enabled` + `ANTHROPIC_API_KEY` (returns 503 until both set). Raw `WebClient` to the Messages API; system prompt + catalog snapshot cached. `create_draft_cart` / `create_enquiry` still out of scope.
+3. ✅ **Agent controller** — `POST /api/agent/chat` streams SSE events back; server orchestrates the Claude call + bounded tool loop. Anonymous access with per-IP rate limit (8/min). Gated on `app.agent.enabled` + `ANTHROPIC_API_KEY` (returns 503 until both set). Raw `WebClient` to the Messages API; system prompt + catalog snapshot cached. All five tools now wired: `create_draft_cart` persists a `draft_cart`/`draft_cart_item` pair (V9 migration) and returns a token adopted via `GET /api/agent/draft-cart/{token}`; `create_enquiry` reuses `EnquiryService`.
 4. ⬜ **Frontend chat drawer** — right-side slide-out on every page; persists across route changes; "Add all to cart" button on final suggestion.
 5. ⬜ **Bulk-recipient flow** — separate `/gift-plan` page: paste CSV, agent produces a table, export as PO.
 6. ⬜ **Metrics** — % of chats that end in a checkout, avg tokens/chat, tool-call error rate.

@@ -22,10 +22,17 @@ import java.util.List;
 public class AgentToolDefinitions {
 
     private final AgentTools tools;
+    private final DraftCartService draftCartService;
+    private final org.example.corporate.enquiry.EnquiryService enquiryService;
     private final ObjectMapper mapper;
 
-    public AgentToolDefinitions(AgentTools tools, ObjectMapper mapper) {
+    public AgentToolDefinitions(AgentTools tools,
+                                DraftCartService draftCartService,
+                                org.example.corporate.enquiry.EnquiryService enquiryService,
+                                ObjectMapper mapper) {
         this.tools = tools;
+        this.draftCartService = draftCartService;
+        this.enquiryService = enquiryService;
         this.mapper = mapper;
     }
 
@@ -84,6 +91,48 @@ public class AgentToolDefinitions {
         lineItems.putArray("required").add("product_slug").add("quantity");
         estSchema.putArray("required").add("lines");
 
+        // create_draft_cart
+        ObjectNode draft = arr.addObject();
+        draft.put("name", "create_draft_cart");
+        draft.put("description",
+                "Persist your final proposed selection as a draft cart and get back a token the buyer "
+                + "adopts with one click. Server-priced (unknown/out-of-stock lines are dropped and "
+                + "reported in warnings). Propose-only: this does NOT place an order — the buyer still "
+                + "completes checkout. Call this once you have a selection the buyer has accepted.");
+        ObjectNode draftSchema = draft.putObject("input_schema");
+        draftSchema.put("type", "object");
+        ObjectNode draftProps = draftSchema.putObject("properties");
+        ObjectNode draftLines = draftProps.putObject("lines");
+        draftLines.put("type", "array").put("description", "The proposed cart lines.");
+        ObjectNode draftLineItems = draftLines.putObject("items");
+        draftLineItems.put("type", "object");
+        ObjectNode draftLineProps = draftLineItems.putObject("properties");
+        draftLineProps.putObject("product_slug").put("type", "string");
+        draftLineProps.putObject("quantity").put("type", "integer");
+        draftLineItems.putArray("required").add("product_slug").add("quantity");
+        draftSchema.putArray("required").add("lines");
+
+        // create_enquiry
+        ObjectNode enq = arr.addObject();
+        enq.put("name", "create_enquiry");
+        enq.put("description",
+                "Escalate to a human sales rep. Use ONLY when the request is too large, custom, or "
+                + "complex to fulfil from the catalog (e.g. bulk branding, custom hampers, net-30 "
+                + "invoicing, or the buyer explicitly asks to talk to someone). Requires the buyer's "
+                + "name, email, and a message; ask for these before calling if you don't have them.");
+        ObjectNode enqSchema = enq.putObject("input_schema");
+        enqSchema.put("type", "object");
+        ObjectNode enqProps = enqSchema.putObject("properties");
+        enqProps.putObject("name").put("type", "string");
+        enqProps.putObject("email").put("type", "string");
+        enqProps.putObject("message").put("type", "string");
+        enqProps.putObject("company_name").put("type", "string");
+        enqProps.putObject("phone").put("type", "string");
+        enqProps.putObject("estimated_quantity").put("type", "integer");
+        enqProps.putObject("occasion").put("type", "string");
+        enqProps.putObject("budget_range").put("type", "string");
+        enqSchema.putArray("required").add("name").add("email").add("message");
+
         return arr;
     }
 
@@ -117,6 +166,45 @@ public class AgentToolDefinitions {
                 }
                 yield tools.estimateTotal(proposed);
             }
+            case "create_draft_cart" -> {
+                List<AgentCartLine> proposed = new ArrayList<>();
+                JsonNode lines = input.get("lines");
+                if (lines != null && lines.isArray()) {
+                    for (JsonNode l : lines) {
+                        proposed.add(new AgentCartLine(text(l, "product_slug"),
+                                l.hasNonNull("quantity") ? l.get("quantity").asInt() : 0));
+                    }
+                }
+                yield draftCartService.create(proposed);
+            }
+            case "create_enquiry" -> {
+                String name = text(input, "name");
+                String email = text(input, "email");
+                String message = text(input, "message");
+                // Guard: EnquiryService.submit is not behind @Valid here, so enforce the
+                // required fields ourselves and hand the model a clear error instead of
+                // persisting junk. Real customer records — keep them clean.
+                if (isBlank(name) || isBlank(email) || isBlank(message)) {
+                    yield java.util.Map.of("error",
+                            "name, email and message are all required to raise an enquiry");
+                }
+                if (!email.contains("@") || email.length() > 200) {
+                    yield java.util.Map.of("error", "a valid email is required");
+                }
+                org.example.corporate.enquiry.EnquiryRequest req =
+                        new org.example.corporate.enquiry.EnquiryRequest(
+                                name,
+                                email,
+                                text(input, "company_name"),
+                                text(input, "phone"),
+                                message,
+                                input.hasNonNull("estimated_quantity")
+                                        ? input.get("estimated_quantity").asInt() : null,
+                                text(input, "occasion"),
+                                null,
+                                text(input, "budget_range"));
+                yield enquiryService.submit(req);
+            }
             default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
         };
     }
@@ -124,6 +212,10 @@ public class AgentToolDefinitions {
     private static String text(JsonNode node, String field) {
         JsonNode v = node == null ? null : node.get(field);
         return v == null || v.isNull() ? null : v.asText();
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
     }
 
     private static List<String> stringArray(JsonNode node, String field) {
