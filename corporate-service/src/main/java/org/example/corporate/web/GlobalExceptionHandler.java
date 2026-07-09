@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.stripe.exception.StripeException;
 
+import org.example.corporate.agent.AgentDisabledException;
+import org.example.corporate.agent.ClaudeApiException;
+
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,6 +44,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<Map<String, Object>> outOfStock(InsufficientStockException e) {
         return build(HttpStatus.CONFLICT, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(AgentDisabledException.class)
+    public ResponseEntity<Map<String, Object>> agentDisabled(AgentDisabledException e) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), null);
+    }
+
+    @ExceptionHandler(ClaudeApiException.class)
+    public ResponseEntity<Map<String, Object>> claudeUnavailable(ClaudeApiException e) {
+        return build(HttpStatus.BAD_GATEWAY, "AI assistant unavailable", null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

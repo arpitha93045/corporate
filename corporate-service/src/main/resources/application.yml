@@ -50,6 +50,15 @@ app:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_replace_me}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_replace_me}
     currency: ${STRIPE_CURRENCY:inr}
+  agent:
+    # AI Gifting Agent. Disabled by default and inert without an API key —
+    # POST /api/agent/chat returns 503 until AGENT_ENABLED=true and a key is set.
+    enabled: ${AGENT_ENABLED:false}
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${AGENT_MODEL:claude-sonnet-4-6}
+    base-url: ${ANTHROPIC_BASE_URL:https://api.anthropic.com}
+    max-tokens: ${AGENT_MAX_TOKENS:1024}
+    max-tool-iterations: ${AGENT_MAX_TOOL_ITERATIONS:6}
   admin:
     # If set, the user with this email is promoted to ADMIN on each boot.
     # They must have signed up first — this bootstrap only bumps the role.

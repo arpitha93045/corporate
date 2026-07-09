@@ -36,6 +36,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
             new Route("POST", "/api/enquiries",
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
+            // Each agent chat costs real Claude tokens — keep this tight.
+            new Route("POST", "/api/agent/chat",
+                    Bandwidth.builder().capacity(8).refillGreedy(8, Duration.ofMinutes(1)).build()),
     };
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();

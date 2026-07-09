@@ -50,6 +50,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- WebClient only: reactive HTTP client for the Claude Messages API.
+             The app remains servlet/MVC; we do not run a reactive web server. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

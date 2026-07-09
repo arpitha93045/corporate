@@ -277,7 +277,7 @@ To make the agent actually good, the catalog needs richer metadata than what V1�
 
 1. ✅ **Backend tool methods** — `AgentTools` service exposes `searchProducts`, `getProduct`, `estimateTotal` as plain Java methods (not REST — avoids a public tool API surface). `createDraftCart` and `createEnquiry` come with slice B.
 2. ✅ **Catalog metadata migration** — V8 adds `product_tag` (kind:value scheme: `occasion:*`, `dietary:*`, `audience:*`, `band:*`). All 28 products hand-tagged; bands derived from price.
-3. ⬜ **Agent controller** — `POST /api/agent/chat` streams SSE tokens back; server orchestrates the Claude call + tool loop. Anonymous access with per-IP rate limit (decision from §11.5).
+3. ✅ **Agent controller** — `POST /api/agent/chat` streams SSE events back; server orchestrates the Claude call + bounded tool loop over the slice-A tools. Anonymous access with per-IP rate limit (8/min). Gated on `app.agent.enabled` + `ANTHROPIC_API_KEY` (returns 503 until both set). Raw `WebClient` to the Messages API; system prompt + catalog snapshot cached. `create_draft_cart` / `create_enquiry` still out of scope.
 4. ⬜ **Frontend chat drawer** — right-side slide-out on every page; persists across route changes; "Add all to cart" button on final suggestion.
 5. ⬜ **Bulk-recipient flow** — separate `/gift-plan` page: paste CSV, agent produces a table, export as PO.
 6. ⬜ **Metrics** — % of chats that end in a checkout, avg tokens/chat, tool-call error rate.
