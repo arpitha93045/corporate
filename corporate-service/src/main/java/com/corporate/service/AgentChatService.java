@@ -17,6 +17,7 @@ import com.corporate.config.AgentProperties;
 import com.corporate.config.AgentToolDefinitions;
 import com.corporate.dto.AgentChatRequest;
 import com.corporate.dto.AgentProductRef;
+import com.corporate.dto.DraftCartDto;
 import com.corporate.web.AgentDisabledException;
 
 /**
@@ -25,10 +26,12 @@ import com.corporate.web.AgentDisabledException;
  * streams progress to the browser as SSE events.
  *
  * SSE event names emitted:
- *   - tool    : {"name": "...", "input": {...}}  one per tool call
- *   - message : {"text": "..."}                   final assistant prose
- *   - done    : {}                                terminal, closes the stream
- *   - error   : {"message": "..."}                recoverable failure mid-stream
+ *   - tool       : {"name": "...", "input": {...}}   one per tool call
+ *   - draft_cart : DraftCartDto                       emitted when create_draft_cart runs, so the
+ *                                                     browser can adopt the priced proposal by token
+ *   - message    : {"text": "..."}                    final assistant prose
+ *   - done       : {}                                 terminal, closes the stream
+ *   - error      : {"message": "..."}                 recoverable failure mid-stream
  *
  * Guardrails (PLAN §11.2 / §11.5): the model never prices — only estimate_total
  * does; per-line/quantity caps live in AgentTools; the iteration cap here stops a
@@ -134,6 +137,12 @@ public class AgentChatService {
                 try {
                     Object result = toolDefs.invoke(toolName, input);
                     resultBlock.put("content", mapper.writeValueAsString(result));
+                    // Surface the adoptable draft to the browser. The token lives only in the
+                    // tool_result sent back to Claude otherwise; the frontend needs it to adopt
+                    // the priced proposal into the cart.
+                    if (result instanceof DraftCartDto draft) {
+                        sendEvent(emitter, "draft_cart", mapper.valueToTree(draft));
+                    }
                 } catch (IllegalArgumentException e) {
                     resultBlock.put("content", "{\"error\":\"" + e.getMessage() + "\"}");
                     resultBlock.put("is_error", true);

@@ -174,3 +174,25 @@ export interface AdminEnquiry {
   status: string;
   createdAt: string;
 }
+
+// ---- AI gifting agent ----
+
+export interface AgentChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface DraftCartLine {
+  productSlug: string;
+  productName: string;
+  quantity: number;
+  unitPriceCents: number;
+  lineTotalCents: number;
+}
+
+export interface DraftCart {
+  token: string;
+  lines: DraftCartLine[];
+  totalCents: number;
+  warnings: string[];
+}

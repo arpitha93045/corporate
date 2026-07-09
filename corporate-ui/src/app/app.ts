@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CartService } from './core/cart.service';
 import { AuthService } from './core/auth.service';
+import { AgentChatComponent } from './shared/agent-chat/agent-chat.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AgentChatComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

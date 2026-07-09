@@ -1,0 +1,89 @@
+<!-- Floating launcher — always visible -->
+@if (!agent.open()) {
+  <button type="button" class="agent-launcher" (click)="agent.openDrawer()"
+          aria-label="Open gifting assistant">
+    <span class="agent-launcher-icon">✦</span>
+    <span class="agent-launcher-text">Gift concierge</span>
+  </button>
+}
+
+<!-- Slide-out panel -->
+<aside class="agent-drawer" [class.open]="agent.open()" role="dialog" aria-label="Gifting assistant">
+  <header class="agent-header">
+    <div class="agent-title">
+      <span class="agent-title-mark">✦</span>
+      Gift concierge
+    </div>
+    <button type="button" class="agent-close" (click)="agent.close()" aria-label="Close">×</button>
+  </header>
+
+  <div class="agent-body" #scroll>
+    @if (agent.messages().length === 0) {
+      <div class="agent-intro">
+        <p>Describe your gifting need and I'll propose a curated selection.</p>
+        <p class="agent-intro-eg">
+          e.g. "20 clients, Diwali, ₹1,500 each, half vegetarian"
+        </p>
+      </div>
+    }
+
+    @for (msg of agent.messages(); track $index) {
+      <div class="agent-msg" [class.user]="msg.role === 'user'"
+           [class.assistant]="msg.role === 'assistant'">
+        <div class="agent-bubble">{{ msg.content }}</div>
+      </div>
+    }
+
+    @if (agent.toolActivity(); as activity) {
+      <div class="agent-activity">
+        <span class="agent-dot"></span>{{ activity }}
+      </div>
+    }
+
+    @if (agent.draft(); as d) {
+      <div class="agent-draft">
+        <div class="agent-draft-title">Proposed selection</div>
+        <ul class="agent-draft-lines">
+          @for (line of d.lines; track line.productSlug) {
+            <li>
+              <span class="agent-draft-name">{{ line.productName }} ×{{ line.quantity }}</span>
+              <span class="agent-draft-price">{{ line.lineTotalCents | money }}</span>
+            </li>
+          }
+        </ul>
+        <div class="agent-draft-total">
+          <span>Estimated total</span>
+          <span>{{ d.totalCents | money }}</span>
+        </div>
+        @if (d.warnings.length) {
+          <ul class="agent-draft-warnings">
+            @for (w of d.warnings; track $index) {
+              <li>{{ w }}</li>
+            }
+          </ul>
+        }
+        <button type="button" class="agent-adopt" (click)="agent.adoptDraft()">
+          Add all to cart
+        </button>
+      </div>
+    }
+
+    @if (agent.error(); as err) {
+      <div class="agent-error">{{ err }}</div>
+    }
+  </div>
+
+  <form class="agent-input" (ngSubmit)="submit()">
+    <textarea
+      [(ngModel)]="draft"
+      name="draft"
+      rows="2"
+      placeholder="Describe your gifting need…"
+      [disabled]="agent.streaming()"
+      (keydown)="onKeydown($event)"></textarea>
+    <button type="submit" class="agent-send"
+            [disabled]="agent.streaming() || !draft.trim()">
+      {{ agent.streaming() ? '…' : 'Send' }}
+    </button>
+  </form>
+</aside>
