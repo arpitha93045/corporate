@@ -47,6 +47,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/enquiry/enquiry.component').then(m => m.EnquiryComponent)
   },
   {
+    path: 'gift-plan',
+    loadComponent: () => import('./components/gift-plan.component').then(m => m.GiftPlanComponent)
+  },
+  {
     path: 'about',
     loadComponent: () => import('./components/about/about.component').then(m => m.AboutComponent)
   },

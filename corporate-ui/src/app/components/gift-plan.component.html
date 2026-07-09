@@ -1,0 +1,107 @@
+<section class="gift-plan">
+  <h1>Bulk gift plan</h1>
+  <p class="lead">
+    Paste or upload your recipient list, and the concierge will propose a curated selection
+    covering everyone. Export it as a PO or add it straight to your cart.
+  </p>
+
+  <div class="gp-inputs">
+    <label class="gp-field">
+      <span>Recipient list (CSV: name, city, notes)</span>
+      <textarea [(ngModel)]="csvText" rows="6"
+                placeholder="Asha Rao, Bengaluru, vegetarian&#10;Vikram Shah, Mumbai, prefers tea"></textarea>
+    </label>
+
+    <div class="gp-inline">
+      <label class="gp-field">
+        <span>Occasion</span>
+        <input type="text" [(ngModel)]="occasion" placeholder="Diwali" />
+      </label>
+      <label class="gp-field">
+        <span>Budget per recipient (₹)</span>
+        <input type="number" min="0" [(ngModel)]="budgetRupees" placeholder="1500" />
+      </label>
+      <label class="gp-field gp-file">
+        <span>…or upload a CSV</span>
+        <input type="file" accept=".csv,text/csv" (change)="onFile($event)" />
+      </label>
+    </div>
+
+    <button type="button" class="gp-btn" (click)="parse()">Parse list</button>
+    @if (parseError()) {
+      <div class="gp-error">{{ parseError() }}</div>
+    }
+  </div>
+
+  @if (recipients().length > 0) {
+    <div class="gp-preview">
+      <h2>{{ recipients().length }} recipient{{ recipients().length === 1 ? '' : 's' }}</h2>
+      <table class="gp-table">
+        <thead>
+          <tr><th>Name</th><th>City</th><th>Notes</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (r of recipients(); track $index) {
+            <tr>
+              <td><input type="text" [(ngModel)]="r.name" /></td>
+              <td><input type="text" [(ngModel)]="r.city" /></td>
+              <td><input type="text" [(ngModel)]="r.notes" /></td>
+              <td>
+                <button type="button" class="gp-remove" (click)="removeRow($index)"
+                        aria-label="Remove recipient">×</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <button type="button" class="gp-btn gp-generate"
+              [disabled]="!canGenerate()" (click)="generate()">
+        {{ streaming() ? 'Generating…' : 'Generate gift plan' }}
+      </button>
+    </div>
+  }
+
+  @if (assistantText() || activity() || draft() || error()) {
+    <div class="gp-result">
+      @if (assistantText()) {
+        <div class="gp-proposal">{{ assistantText() }}</div>
+      }
+
+      @if (streaming() && activity(); as a) {
+        <div class="gp-activity"><span class="gp-dot"></span>{{ a }}</div>
+      }
+
+      @if (draft(); as d) {
+        <div class="gp-draft">
+          <div class="gp-draft-title">Proposed selection</div>
+          <ul class="gp-draft-lines">
+            @for (line of d.lines; track line.productSlug) {
+              <li>
+                <span>{{ line.productName }} ×{{ line.quantity }}</span>
+                <span class="gp-price">{{ line.lineTotalCents | money }}</span>
+              </li>
+            }
+          </ul>
+          <div class="gp-draft-total">
+            <span>Estimated total</span>
+            <span>{{ d.totalCents | money }}</span>
+          </div>
+          @if (d.warnings.length) {
+            <ul class="gp-warnings">
+              @for (w of d.warnings; track $index) { <li>{{ w }}</li> }
+            </ul>
+          }
+          <div class="gp-actions">
+            <button type="button" class="gp-btn" (click)="adopt()">Add all to cart</button>
+            <button type="button" class="gp-btn gp-secondary" (click)="exportPo()">Export PO</button>
+          </div>
+        </div>
+      }
+
+      @if (error(); as err) {
+        <div class="gp-error">{{ err }}</div>
+      }
+    </div>
+  }
+</section>
