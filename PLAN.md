@@ -275,16 +275,17 @@ To make the agent actually good, the catalog needs richer metadata than what V1�
 
 ### 11.4 Build order for the agent
 
-1. **Backend tool endpoints** — implement the 5 tools above as internal REST endpoints under `/api/agent/tools/*`, secured so only the agent controller can call them (or make them method calls, not HTTP — simpler).
-2. **Catalog metadata migration** — V7 adds tags + structured descriptions; backfill a few dozen products manually.
-3. **Agent controller** — `POST /api/agent/chat` streams SSE tokens back; server orchestrates the Claude call + tool loop. Use the `claude-api` skill's caching patterns.
-4. **Frontend chat drawer** — right-side slide-out on every page; persists across route changes; "Add all to cart" button on final suggestion.
-5. **Bulk-recipient flow** — separate `/gift-plan` page: paste CSV, agent produces a table, export as PO.
-6. **Metrics** — % of chats that end in a checkout, avg tokens/chat, tool-call error rate. Feeds into whether the feature is earning its keep.
+1. ✅ **Backend tool methods** — `AgentTools` service exposes `searchProducts`, `getProduct`, `estimateTotal` as plain Java methods (not REST — avoids a public tool API surface). `createDraftCart` and `createEnquiry` come with slice B.
+2. ✅ **Catalog metadata migration** — V8 adds `product_tag` (kind:value scheme: `occasion:*`, `dietary:*`, `audience:*`, `band:*`). All 28 products hand-tagged; bands derived from price.
+3. ⬜ **Agent controller** — `POST /api/agent/chat` streams SSE tokens back; server orchestrates the Claude call + tool loop. Anonymous access with per-IP rate limit (decision from §11.5).
+4. ⬜ **Frontend chat drawer** — right-side slide-out on every page; persists across route changes; "Add all to cart" button on final suggestion.
+5. ⬜ **Bulk-recipient flow** — separate `/gift-plan` page: paste CSV, agent produces a table, export as PO.
+6. ⬜ **Metrics** — % of chats that end in a checkout, avg tokens/chat, tool-call error rate.
 
-### 11.5 What to decide before starting
+### 11.5 Decisions (locked in)
 
-- Is the agent gated behind login, or available to anonymous browsers (with rate limits)? Anonymous = better discovery, higher API cost.
-- Does the agent get access to a user's past orders as context? Powerful for repeat clients, but a privacy call.
-- Do we want the agent to be able to place an order end-to-end (with a final confirm click), or only *propose* a cart? Start with propose-only; automating the checkout adds a whole class of edge cases.
+- **Access**: anonymous with per-IP rate limit. Better discovery outweighs the API-cost risk if we cap tokens per chat and total daily spend server-side.
+- **Past-order context**: **not** fed into the prompt. Catalog + current chat only. Revisit once we have real usage data.
+- **End-to-end checkout by the agent**: propose-only for now. The user always clicks through the existing checkout flow.
+- Human-in-the-loop for high-value orders: TBD once we see the shape of real chats.
 - Human-in-the-loop for high-value orders? A ₹5L cart proposed by the agent probably shouldn't auto-checkout even if we build that path.

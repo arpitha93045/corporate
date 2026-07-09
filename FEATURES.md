@@ -65,6 +65,15 @@ Last updated: 2026-07-08
 - Enquiry notification email (existing).
 - **Order confirmation email**: sent to the buyer's email when Stripe `payment_intent.succeeded` fires and the order transitions to `PAID`. Plain-text template rendered by `OrderMailFormatter` (pure function, unit tested) — includes order number, line items with quantities, INR total, and shipping address. Sending is guarded by `app.mail.enabled`, so with SMTP disabled the send is logged as a would-have-sent and never fails the webhook. Idempotent by construction: the send only runs inside the `status != PAID` branch, so duplicate webhook deliveries don't spam the buyer.
 
+### AI Gifting Agent (slice A: tool plumbing)
+- Foundation for the concierge agent. **No LLM wired up yet** — this slice ships only the deterministic tools the agent will call in slice B.
+- V8 migration adds a `product_tag` table with a flat `kind:value` scheme (`occasion:*`, `dietary:*`, `audience:*`, `band:*`). Every existing product hand-tagged; price bands derived from `price_cents`. Deliberately H2-compatible (no jsonb) so the test profile keeps working.
+- `AgentTools` service exposes three server-side methods (called as Java, not REST — no public tool API surface for a hostile client to poke):
+  - `searchProducts(query, tags, maxResults)` — text contains + tag intersection; caps at 12 results; only in-stock rows.
+  - `getProduct(slug)` — full ref by slug, tags included.
+  - `estimateTotal(lines)` — server-priced, warns on unknown slugs / non-positive qty / over-stock, caps quantity per line at 500. The model never does arithmetic on money.
+- 11 integration tests cover text search, tag intersection, unknown tags, per-line caps, and stock warnings.
+
 ### Hardening / Ops
 - Rate-limit on anonymous POST endpoints per client IP.
 - Actuator `/health` for liveness.
@@ -82,7 +91,7 @@ Last updated: 2026-07-08
 - Observability (structured logs, metrics, error tracking).
 - Deployment (Dockerfiles, reverse proxy + TLS).
 - CI (GitHub Actions).
-- **AI Gifting Agent** — concierge chat, bulk-recipient assistant, post-purchase follow-up.
+- **AI Gifting Agent** — LLM wire-up (slice B+): concierge chat, streaming, bulk-recipient assistant, post-purchase follow-up. Tools + tags are already shipped (slice A above).
 
 ---
 
@@ -125,3 +134,4 @@ Last updated: 2026-07-08
 | V5      | Expanded catalog (more products)                                 |
 | V6      | Order-number sequence, `product.stock_quantity`, idempotency_key |
 | V7      | Stripe payment columns on orders                                 |
+| V8      | Product tags (occasion / dietary / audience / band) for AI agent |
