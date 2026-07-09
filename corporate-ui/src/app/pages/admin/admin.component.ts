@@ -1,7 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { AdminApiService } from '../../core/admin-api.service';
 import {
   AdminEnquiry,
@@ -27,7 +26,7 @@ const EMPTY_DRAFT: ProductUpsert = {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DatePipe, MoneyPipe],
+  imports: [CommonModule, FormsModule, DatePipe, MoneyPipe],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
@@ -46,10 +45,13 @@ export class AdminComponent {
   protected draft = signal<ProductUpsert>({ ...EMPTY_DRAFT });
   protected saving = signal<boolean>(false);
 
-  protected priceRupees = computed({
-    get: () => this.draft().priceCents / 100,
-    set: (v: number) => this.draft.update(d => ({ ...d, priceCents: Math.round(v * 100) })),
-  } as any);
+  protected priceRupees(): number {
+    return this.draft().priceCents / 100;
+  }
+
+  protected setPriceRupees(v: number) {
+    this.draft.update(d => ({ ...d, priceCents: Math.round(v * 100) }));
+  }
 
   constructor() {
     this.loadProducts();

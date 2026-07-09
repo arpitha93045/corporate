@@ -88,7 +88,7 @@
               Price (₹)
               <input type="number" min="0" step="0.01" required
                      [ngModel]="priceRupees()"
-                     (ngModelChange)="priceRupees.set($event)"
+                     (ngModelChange)="setPriceRupees($event)"
                      name="priceRupees" />
             </label>
             <label>
