@@ -8,13 +8,23 @@ import { AuthService } from './auth.service';
 const CHAT_URL = '/api/agent/chat';
 
 /** Human-friendly labels for the transient "the agent is doing X" line. */
-const TOOL_LABELS: Record<string, string> = {
+export const TOOL_LABELS: Record<string, string> = {
   search_products: 'Searching the catalog…',
   get_product: 'Checking a product…',
   estimate_total: 'Pricing your selection…',
   create_draft_cart: 'Building your cart…',
   create_enquiry: 'Passing this to our team…'
 };
+
+/** Callback bag for a single streamed chat turn. Lets a caller layer its own
+ *  state on top of the shared SSE transport without touching the drawer. */
+export interface AgentStreamHandlers {
+  onMessage(text: string): void;
+  onTool(name: string): void;
+  onDraft(draft: DraftCart): void;
+  onError(message: string): void;
+  onDone(): void;
+}
 
 /**
  * Client-side store + transport for the gifting concierge. Conversation history is
@@ -64,6 +74,26 @@ export class AgentService {
     this._toolActivity.set(null);
 
     const history = this._messages();
+    try {
+      await this.streamChat(history, {
+        onMessage: t => this.appendAssistantText(t),
+        onTool: name => this._toolActivity.set(TOOL_LABELS[name] ?? 'Working…'),
+        onDraft: d => this._draft.set(d),
+        onError: msg => this._error.set(msg),
+        onDone: () => this._toolActivity.set(null)
+      });
+    } finally {
+      this._streaming.set(false);
+      this._toolActivity.set(null);
+    }
+  }
+
+  /**
+   * Shared SSE transport: POST the full message history to /api/agent/chat and
+   * dispatch each event to the handler bag. Stateless — callers own their state.
+   * Used by both the drawer (send) and the gift-plan page.
+   */
+  async streamChat(messages: AgentChatMessage[], h: AgentStreamHandlers): Promise<void> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const token = this.auth.token();
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -72,28 +102,27 @@ export class AgentService {
       const res = await fetch(CHAT_URL, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ messages: history })
+        body: JSON.stringify({ messages })
       });
 
       if (!res.ok || !res.body) {
-        this._error.set(res.status === 503
+        h.onError(res.status === 503
           ? "The gifting assistant isn't available right now."
           : 'Sorry, something went wrong. Please try again.');
         return;
       }
 
-      await this.consumeStream(res.body);
+      await this.consumeStream(res.body, h);
     } catch {
-      this._error.set('Could not reach the assistant. Check your connection and try again.');
-    } finally {
-      this._streaming.set(false);
-      this._toolActivity.set(null);
+      h.onError('Could not reach the assistant. Check your connection and try again.');
     }
   }
 
-  /** Adopt the current draft's lines into the client cart, resolving each slug to a Product. */
-  async adoptDraft(): Promise<void> {
-    const draft = this._draft();
+  /**
+   * Adopt a draft's lines into the client cart, resolving each slug to a Product.
+   * Defaults to the drawer's own draft; the gift-plan page passes its own.
+   */
+  async adoptDraft(draft: DraftCart | null = this._draft()): Promise<void> {
     if (!draft || draft.lines.length === 0) return;
 
     let added = 0;
@@ -108,7 +137,8 @@ export class AgentService {
       }
     }
 
-    this._draft.set(null);
+    // Only clear the drawer's signal when we adopted the drawer's own draft.
+    if (draft === this._draft()) this._draft.set(null);
     let note = `Added ${added} item${added === 1 ? '' : 's'} to your cart.`;
     if (missing.length) {
       note += ` Couldn't add: ${missing.join(', ')} (no longer available).`;
@@ -117,7 +147,7 @@ export class AgentService {
   }
 
   /** Reads an SSE body (event:/data: frames) and dispatches by event name. */
-  private async consumeStream(body: ReadableStream<Uint8Array>): Promise<void> {
+  private async consumeStream(body: ReadableStream<Uint8Array>, h: AgentStreamHandlers): Promise<void> {
     const reader = body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -132,12 +162,12 @@ export class AgentService {
       while ((sep = buffer.indexOf('\n\n')) !== -1) {
         const frame = buffer.slice(0, sep);
         buffer = buffer.slice(sep + 2);
-        this.handleFrame(frame);
+        this.handleFrame(frame, h);
       }
     }
   }
 
-  private handleFrame(frame: string): void {
+  private handleFrame(frame: string, h: AgentStreamHandlers): void {
     let event = 'message';
     const dataLines: string[] = [];
     for (const raw of frame.split('\n')) {
@@ -156,19 +186,19 @@ export class AgentService {
 
     switch (event) {
       case 'message':
-        this.appendAssistantText(data.text ?? '');
+        if (data.text) h.onMessage(data.text);
         break;
       case 'tool':
-        this._toolActivity.set(TOOL_LABELS[data.name] ?? 'Working…');
+        h.onTool(data.name);
         break;
       case 'draft_cart':
-        this._draft.set(data as DraftCart);
+        h.onDraft(data as DraftCart);
         break;
       case 'error':
-        this._error.set(data.message ?? 'Something went wrong.');
+        h.onError(data.message ?? 'Something went wrong.');
         break;
       case 'done':
-        this._toolActivity.set(null);
+        h.onDone();
         break;
     }
   }

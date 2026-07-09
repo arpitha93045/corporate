@@ -196,3 +196,9 @@ export interface DraftCart {
   totalCents: number;
   warnings: string[];
 }
+
+export interface GiftRecipient {
+  name: string;
+  city: string;
+  notes: string;
+}
