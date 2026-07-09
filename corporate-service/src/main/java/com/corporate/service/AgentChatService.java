@@ -63,17 +63,20 @@ public class AgentChatService {
     private final AgentTools tools;
     private final AgentProperties props;
     private final ObjectMapper mapper;
+    private final AgentMetrics metrics;
 
     public AgentChatService(ClaudeClient claude,
                             AgentToolDefinitions toolDefs,
                             AgentTools tools,
                             AgentProperties props,
-                            ObjectMapper mapper) {
+                            ObjectMapper mapper,
+                            AgentMetrics metrics) {
         this.claude = claude;
         this.toolDefs = toolDefs;
         this.tools = tools;
         this.props = props;
         this.mapper = mapper;
+        this.metrics = metrics;
     }
 
     /** Entry point. Throws AgentDisabledException before any streaming if unusable. */
@@ -98,62 +101,73 @@ public class AgentChatService {
     private void runLoop(AgentChatRequest request, SseEmitter emitter) throws IOException {
         ArrayNode messages = buildInitialMessages(request);
         ArrayNode toolSchemas = toolDefs.toolSchemas();
+        AgentMetrics.ChatRecorder rec = metrics.startChat();
 
-        for (int iteration = 0; iteration < props.maxToolIterations(); iteration++) {
-            ObjectNode body = buildRequestBody(messages, toolSchemas);
-            JsonNode response = claude.createMessage(body);
+        try {
+            for (int iteration = 0; iteration < props.maxToolIterations(); iteration++) {
+                ObjectNode body = buildRequestBody(messages, toolSchemas);
+                JsonNode response = claude.createMessage(body);
 
-            String stopReason = response.path("stop_reason").asText("");
-            JsonNode content = response.path("content");
+                JsonNode usage = response.path("usage");
+                rec.addTokens(usage.path("input_tokens").asLong(0), usage.path("output_tokens").asLong(0));
 
-            // Echo any assistant text in this turn to the client.
-            emitAssistantText(emitter, content);
+                String stopReason = response.path("stop_reason").asText("");
+                JsonNode content = response.path("content");
 
-            if (!"tool_use".equals(stopReason)) {
-                // end_turn, max_tokens, stop_sequence, etc. — conversation turn done.
-                sendEvent(emitter, "done", mapper.createObjectNode());
-                return;
-            }
+                // Echo any assistant text in this turn to the client.
+                emitAssistantText(emitter, content);
 
-            // The assistant asked to use one or more tools. Append its turn verbatim,
-            // then run each tool and append the results as a user turn.
-            messages.add(assistantTurn(content));
-            ObjectNode toolResultTurn = mapper.createObjectNode();
-            toolResultTurn.put("role", "user");
-            ArrayNode resultBlocks = toolResultTurn.putArray("content");
-
-            for (JsonNode block : content) {
-                if (!"tool_use".equals(block.path("type").asText())) continue;
-                String toolName = block.path("name").asText();
-                String toolUseId = block.path("id").asText();
-                JsonNode input = block.path("input");
-
-                log.info("agent.tool_call name={} input={}", toolName, input);
-                sendEvent(emitter, "tool", toolEvent(toolName, input));
-
-                ObjectNode resultBlock = resultBlocks.addObject();
-                resultBlock.put("type", "tool_result");
-                resultBlock.put("tool_use_id", toolUseId);
-                try {
-                    Object result = toolDefs.invoke(toolName, input);
-                    resultBlock.put("content", mapper.writeValueAsString(result));
-                    // Surface the adoptable draft to the browser. The token lives only in the
-                    // tool_result sent back to Claude otherwise; the frontend needs it to adopt
-                    // the priced proposal into the cart.
-                    if (result instanceof DraftCartDto draft) {
-                        sendEvent(emitter, "draft_cart", mapper.valueToTree(draft));
-                    }
-                } catch (IllegalArgumentException e) {
-                    resultBlock.put("content", "{\"error\":\"" + e.getMessage() + "\"}");
-                    resultBlock.put("is_error", true);
+                if (!"tool_use".equals(stopReason)) {
+                    // end_turn, max_tokens, stop_sequence, etc. — conversation turn done.
+                    sendEvent(emitter, "done", mapper.createObjectNode());
+                    return;
                 }
-            }
-            messages.add(toolResultTurn);
-        }
 
-        // Ran out of tool iterations without a final answer.
-        log.warn("agent.tool_loop_exhausted iterations={}", props.maxToolIterations());
-        emitError(emitter, "The assistant took too many steps. Please rephrase your request.");
+                // The assistant asked to use one or more tools. Append its turn verbatim,
+                // then run each tool and append the results as a user turn.
+                messages.add(assistantTurn(content));
+                ObjectNode toolResultTurn = mapper.createObjectNode();
+                toolResultTurn.put("role", "user");
+                ArrayNode resultBlocks = toolResultTurn.putArray("content");
+
+                for (JsonNode block : content) {
+                    if (!"tool_use".equals(block.path("type").asText())) continue;
+                    String toolName = block.path("name").asText();
+                    String toolUseId = block.path("id").asText();
+                    JsonNode input = block.path("input");
+
+                    log.info("agent.tool_call name={} input={}", toolName, input);
+                    sendEvent(emitter, "tool", toolEvent(toolName, input));
+
+                    ObjectNode resultBlock = resultBlocks.addObject();
+                    resultBlock.put("type", "tool_result");
+                    resultBlock.put("tool_use_id", toolUseId);
+                    try {
+                        Object result = toolDefs.invoke(toolName, input);
+                        resultBlock.put("content", mapper.writeValueAsString(result));
+                        rec.toolCall(toolName, false);
+                        // Surface the adoptable draft to the browser. The token lives only in the
+                        // tool_result sent back to Claude otherwise; the frontend needs it to adopt
+                        // the priced proposal into the cart.
+                        if (result instanceof DraftCartDto draft) {
+                            rec.draftCreated(draft.token());
+                            sendEvent(emitter, "draft_cart", mapper.valueToTree(draft));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        resultBlock.put("content", "{\"error\":\"" + e.getMessage() + "\"}");
+                        resultBlock.put("is_error", true);
+                        rec.toolCall(toolName, true);
+                    }
+                }
+                messages.add(toolResultTurn);
+            }
+
+            // Ran out of tool iterations without a final answer.
+            log.warn("agent.tool_loop_exhausted iterations={}", props.maxToolIterations());
+            emitError(emitter, "The assistant took too many steps. Please rephrase your request.");
+        } finally {
+            rec.commit();
+        }
     }
 
     private ArrayNode buildInitialMessages(AgentChatRequest request) {

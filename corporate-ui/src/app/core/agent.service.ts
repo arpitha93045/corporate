@@ -125,6 +125,12 @@ export class AgentService {
   async adoptDraft(draft: DraftCart | null = this._draft()): Promise<void> {
     if (!draft || draft.lines.length === 0) return;
 
+    // Best-effort adoption beacon: hitting the token endpoint lets the server
+    // record this draft as adopted (agent conversion metric). Never blocks adoption.
+    if (draft.token) {
+      void fetch(`/api/agent/draft-cart/${encodeURIComponent(draft.token)}`).catch(() => {});
+    }
+
     let added = 0;
     const missing: string[] = [];
     for (const line of draft.lines) {

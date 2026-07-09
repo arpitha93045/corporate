@@ -68,7 +68,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # health is anonymous (probes); metrics + prometheus are admin-only,
+        # enforced in SecurityConfig (/actuator/** -> ROLE_ADMIN).
+        include: health,metrics,prometheus
   endpoint:
     health:
       # Never expose component-level details to anonymous callers — a bare

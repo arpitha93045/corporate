@@ -47,4 +47,15 @@ class ActuatorHealthTest {
         assertThat(envStatus).isNotEqualTo(200);
         assertThat(beansStatus).isNotEqualTo(200);
     }
+
+    @Test
+    void metrics_and_prometheus_are_exposed_but_require_admin() throws Exception {
+        // Exposed for ops (agent meters) but never anonymous — operational data
+        // shouldn't leak. Anonymous callers get 401/403, not 200 and not 404.
+        int metricsStatus = mvc.perform(get("/actuator/metrics")).andReturn().getResponse().getStatus();
+        int promStatus = mvc.perform(get("/actuator/prometheus")).andReturn().getResponse().getStatus();
+
+        assertThat(metricsStatus).isIn(401, 403);
+        assertThat(promStatus).isIn(401, 403);
+    }
 }

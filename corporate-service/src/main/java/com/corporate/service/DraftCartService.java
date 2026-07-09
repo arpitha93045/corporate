@@ -32,11 +32,14 @@ public class DraftCartService {
     private final DraftCartRepository repo;
     private final AgentTools agentTools;
     private final ProductRepository productRepo;
+    private final AgentMetrics metrics;
 
-    public DraftCartService(DraftCartRepository repo, AgentTools agentTools, ProductRepository productRepo) {
+    public DraftCartService(DraftCartRepository repo, AgentTools agentTools,
+                            ProductRepository productRepo, AgentMetrics metrics) {
         this.repo = repo;
         this.agentTools = agentTools;
         this.productRepo = productRepo;
+        this.metrics = metrics;
     }
 
     @Transactional
@@ -78,6 +81,8 @@ public class DraftCartService {
     public DraftCartDto fetch(String token) {
         DraftCart cart = repo.findByToken(token)
                 .orElseThrow(() -> new NotFoundException("Draft cart not found"));
+        // A fetch by token is the buyer adopting the proposal — our conversion signal.
+        metrics.recordAdoption(token);
         return DraftCartDto.from(cart, List.of());
     }
 }

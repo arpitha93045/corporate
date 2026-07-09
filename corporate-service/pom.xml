@@ -50,6 +50,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- Prometheus scrape endpoint (/actuator/prometheus) for the agent meters. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
         <!-- WebClient only: reactive HTTP client for the Claude Messages API.
              The app remains servlet/MVC; we do not run a reactive web server. -->
         <dependency>
