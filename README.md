@@ -160,6 +160,10 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 
 `/actuator/health` is anonymous (bare status only, no component details). `/actuator/metrics` and `/actuator/prometheus` are exposed but restricted to `ROLE_ADMIN` so operational data doesn't leak.
 
+**Request correlation.** Every response carries an `X-Request-Id` header. If a trusted upstream proxy sends `X-Request-Id`, it's reused (when it matches `[A-Za-z0-9._-]{1,64}` — otherwise a fresh UUID is minted so a client can't inject junk into the logs). The id is in the SLF4J MDC as `requestId`, so every log line for a request carries it.
+
+**Log format.** Local profiles (`dev`/`h2`) log human-readable lines with `[req=<id>]` inline. The `prod` profile emits one JSON object per log event (`ts`, `level`, `logger`, `thread`, `requestId`, `msg`, `exception`) for ingestion by a log aggregator. Config lives in `logback-spring.xml`. Never log PII or secrets.
+
 The AI agent records per-turn metrics to both Micrometer (live, reset on restart) and a durable `agent_chat_metric` table (V10):
 
 | Meter | Meaning |
