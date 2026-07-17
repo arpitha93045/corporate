@@ -221,7 +221,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started.
 - 🟡 **Search**: server-side text search on product name + description via `GET /api/products?q=`, composable with the `category` filter. Portable `LOWER(...) LIKE ... ESCAPE '!'` (H2 + Postgres) — user wildcards `% _` are escaped so they can't match-all. Catalog search box now hits the server (debounced 300ms); price + sort remain client-side refinements. Postgres `to_tsvector`/GIN ranking deferred until catalog size warrants it (H2 lacks FTS, so it'd split behavior across profiles).
 - ⬜ **Observability**: structured JSON logs, Micrometer + Prometheus metrics, Sentry (or similar) for error tracking. `/health` is in; `/metrics` isn't.
 - ⬜ **Deployment**: Dockerfiles for backend + frontend, one-command compose for prod-like stack, reverse proxy with TLS (Caddy or nginx + certbot), managed Postgres.
-- ⬜ **CI**: GitHub Actions running `mvn verify` + `ng build` + `ng test` on PRs. None today.
+- 🟡 **CI**: GitHub Actions (`.github/workflows/ci.yml`) on push + PR to `main`. Two jobs: backend `./mvnw verify` (JDK 21 temurin, H2 profile, Maven cache) and frontend `npm ci` + `npm run build` (Node from `.nvmrc`, npm cache). `ng test` is intentionally omitted — no test runner/specs are configured yet (it would fail on zero specs); add it once specs land.
 
 ---
 

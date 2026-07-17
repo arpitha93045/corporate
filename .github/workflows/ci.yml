@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (mvnw verify)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: corporate-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # Tests run against the in-memory H2 profile, so no Postgres service is
+      # needed here. The prod profile is env-driven and never exercised in CI.
+      - name: Verify
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+  frontend:
+    name: Frontend (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: corporate-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: corporate-ui/.nvmrc
+          cache: npm
+          cache-dependency-path: corporate-ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No unit specs / test runner are configured yet (ng test would fail with
+      # zero specs), so CI gates on a production build. Add `npm test` here once
+      # a test runner and specs land.
+      - name: Build
+        run: npm run build
