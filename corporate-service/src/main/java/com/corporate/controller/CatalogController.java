@@ -27,8 +27,10 @@ public class CatalogController {
     }
 
     @GetMapping("/products")
-    public List<ProductDto> products(@RequestParam(name = "category", required = false) String categorySlug) {
-        return catalog.listProducts(categorySlug);
+    public List<ProductDto> products(
+            @RequestParam(name = "category", required = false) String categorySlug,
+            @RequestParam(name = "q", required = false) String query) {
+        return catalog.listProducts(categorySlug, query);
     }
 
     @GetMapping("/products/{slug}")

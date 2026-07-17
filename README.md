@@ -72,6 +72,23 @@ MAIL_PORT=587
 MAIL_USERNAME=...
 MAIL_PASSWORD=...
 MAIL_FROM=gifts@yourdomain.com               # maps to app.mail.from
+
+# Stripe payments — the checkout/pay flow. Test keys work out of the box.
+STRIPE_SECRET_KEY=sk_live_...                # maps to app.stripe.secret-key
+STRIPE_WEBHOOK_SECRET=whsec_...              # maps to app.stripe.webhook-secret
+STRIPE_CURRENCY=inr                          # maps to app.stripe.currency
+
+# AI Gifting Agent — optional. Disabled by default; POST /api/agent/chat
+# returns 503 until AGENT_ENABLED=true AND a non-blank ANTHROPIC_API_KEY is set.
+AGENT_ENABLED=true                           # maps to app.agent.enabled
+ANTHROPIC_API_KEY=sk-ant-...                 # maps to app.agent.api-key
+AGENT_MODEL=claude-sonnet-4-6                # optional; the default
+AGENT_MAX_TOKENS=1024                        # optional; per-turn output cap
+AGENT_MAX_TOOL_ITERATIONS=6                  # optional; runaway tool-loop guard
+
+# Admin bootstrap — optional. On each boot, promotes this (already-signed-up)
+# user to ADMIN. Admins reach /api/admin/** and the /actuator metrics endpoints.
+APP_ADMIN_EMAIL=you@yourdomain.com           # maps to app.admin.email
 ```
 
 ```bash
@@ -90,26 +107,30 @@ corporate/
 ├── docker-compose.yml          # Local Postgres
 ├── corporate-service/          # Spring Boot backend
 │   ├── pom.xml
-│   └── src/main/java/org/example/corporate/
+│   └── src/main/java/com/corporate/
 │       ├── CorporateApplication.java
-│       ├── config/                 # CORS, etc.
-│       ├── auth/                   # JWT auth (register/login/me), Spring Security
-│       ├── catalog/                # Category, Product, controllers
-│       ├── order/                  # OrderEntity, OrderItem
-│       ├── checkout/               # CheckoutService + controller
-│       ├── enquiry/                # Bulk-order enquiries
+│       ├── config/                 # Security, CORS, agent config + tool defs
+│       ├── controller/             # REST controllers (auth, catalog, checkout, agent, admin, …)
+│       ├── service/                # Business logic (checkout, agent chat, metrics, mail, …)
+│       ├── dto/                    # Request/response records
+│       ├── entity/                 # JPA entities
+│       ├── dao/                    # Spring Data repositories
+│       ├── client/                 # Anthropic Messages API client (WebClient)
 │       ├── mail/                   # Optional SMTP sender (gated by app.mail.enabled)
-│       └── web/                    # Exception handling, shared
+│       └── web/                    # Exception handling, rate-limit filter, shared
 │   └── src/main/resources/
 │       ├── application.yml         # dev (Postgres), h2, prod profiles
-│       └── db/migration/           # Flyway: V1__init, V2__seed_catalog, V3__users_and_orders_user_id, V4__enquiries
+│       └── db/migration/           # Flyway V1..V10 (init, seed, users, enquiries,
+│                                   #   catalog expansion, ordering/inventory, payments,
+│                                   #   product tags, draft carts, agent metrics)
 └── corporate-ui/               # Angular workspace
     ├── proxy.conf.json
     └── src/app/
-        ├── core/               # ApiService, CartService, AuthService, authInterceptor, authGuard
+        ├── core/               # ApiService, CartService, AuthService, AgentService, authInterceptor, authGuard
         ├── models/             # TS interfaces matching backend DTOs
-        ├── pages/              # catalog, product-detail, cart, checkout, order-confirmation, login, signup, enquiry, about
-        └── shared/             # money pipe, etc.
+        ├── components/         # catalog, product-detail, cart, checkout, pay, order-confirmation,
+        │                       #   login, signup, enquiry, gift-plan, about, admin
+        └── shared/             # money pipe, agent-chat drawer, etc.
 ```
 
 ## API endpoints
@@ -122,7 +143,7 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 |---|---|---|---|
 | GET  | `/api/health` | – | Liveness check |
 | GET  | `/api/categories` | – | List categories |
-| GET  | `/api/products?category={slug}` | – | List products (optional filter) |
+| GET  | `/api/products?category={slug}&q={text}` | – | List products. Optional `category` filter and `q` text search over name + description (composable). |
 | GET  | `/api/products/{slug}` | – | Product detail |
 | POST | `/api/auth/register` | – | Create an account; returns `{ token, expiresInSeconds, user }` |
 | POST | `/api/auth/login` | – | Sign in; returns the same shape |
@@ -130,6 +151,26 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 | POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. |
 | GET  | `/api/orders/{orderNumber}` | **auth** | Fetch a placed order (owner only) |
 | POST | `/api/enquiries` | – | Submit a bulk-order enquiry; optionally emails ops if SMTP is configured |
+| POST | `/api/agent/chat` | – | AI gifting concierge. Streams Server-Sent Events (`tool`, `draft_cart`, `message`, `done`, `error`). Returns 503 unless the agent is enabled + keyed. |
+| GET  | `/api/agent/draft-cart/{token}` | – | Fetch an agent-produced draft cart by its opaque token (used to adopt the proposal into the cart) |
+| GET  | `/actuator/health` | – | Bare `{"status":"UP"}` for load balancers / k8s probes |
+| GET  | `/actuator/metrics`, `/actuator/prometheus` | **admin** | Application + agent metrics (see Monitoring) |
+
+### Monitoring
+
+`/actuator/health` is anonymous (bare status only, no component details). `/actuator/metrics` and `/actuator/prometheus` are exposed but restricted to `ROLE_ADMIN` so operational data doesn't leak.
+
+The AI agent records per-turn metrics to both Micrometer (live, reset on restart) and a durable `agent_chat_metric` table (V10):
+
+| Meter | Meaning |
+|---|---|
+| `agent.chats` | Chat turns completed |
+| `agent.tokens.input`, `agent.tokens.output` | Anthropic tokens per turn (distribution) |
+| `agent.tool.calls{tool=…}`, `agent.tool.errors{tool=…}` | Tool invocations and failures, tagged by tool |
+| `agent.drafts.created` | Turns that produced a priced draft cart |
+| `agent.drafts.adopted` | Drafts the buyer adopted into their cart |
+
+Conversion (share of chats that lead toward checkout) ≈ `agent.drafts.adopted / agent.chats`. Adoption is recorded when the buyer fetches a draft by token; the buyer still completes the real checkout themselves.
 
 ## Smoke test the backend without the frontend
 

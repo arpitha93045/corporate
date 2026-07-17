@@ -12,9 +12,10 @@ export class ApiService {
     return this.http.get<Category[]>(`${this.base}/categories`);
   }
 
-  products(categorySlug?: string): Observable<Product[]> {
+  products(categorySlug?: string, query?: string): Observable<Product[]> {
     let params = new HttpParams();
     if (categorySlug) params = params.set('category', categorySlug);
+    if (query && query.trim()) params = params.set('q', query.trim());
     return this.http.get<Product[]>(`${this.base}/products`, { params });
   }
 

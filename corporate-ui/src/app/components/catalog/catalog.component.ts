@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
@@ -26,15 +26,19 @@ export class CatalogComponent {
   protected maxPrice = signal<number | null>(null);
   protected sortBy = signal<'default' | 'price-asc' | 'price-desc' | 'name'>('default');
 
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastQuerySent = '';
+
+  // Price + sort refine the server-returned set client-side. Text search and
+  // category filtering are done server-side so results aren't limited to the
+  // products already loaded in the browser.
   protected visibleProducts = computed<Product[]>(() => {
-    const q = this.search().trim().toLowerCase();
     const min = this.minPrice();
     const max = this.maxPrice();
     const filtered = this.products().filter(p => {
       const rupees = p.priceCents / 100;
       if (min != null && rupees < min) return false;
       if (max != null && rupees > max) return false;
-      if (q && !(p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))) return false;
       return true;
     });
     const sorted = [...filtered];
@@ -55,12 +59,23 @@ export class CatalogComponent {
       next: c => this.categories.set(c),
       error: () => {}
     });
-    this.loadProducts(null);
+    this.loadProducts();
+
+    // Debounce free-text search so we don't fire a request per keystroke.
+    effect(() => {
+      const q = this.search().trim();
+      if (this.searchTimer) clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => {
+        if (q === this.lastQuerySent) return;
+        this.lastQuerySent = q;
+        this.loadProducts();
+      }, 300);
+    });
   }
 
   protected selectCategory(slug: string | null): void {
     this.selectedCategory.set(slug);
-    this.loadProducts(slug);
+    this.loadProducts();
   }
 
   protected clearFilters(): void {
@@ -69,10 +84,13 @@ export class CatalogComponent {
     this.maxPrice.set(null);
   }
 
-  private loadProducts(slug: string | null): void {
+  private loadProducts(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.products(slug ?? undefined).subscribe({
+    const slug = this.selectedCategory();
+    const q = this.search().trim();
+    this.lastQuerySent = q;
+    this.api.products(slug ?? undefined, q || undefined).subscribe({
       next: p => { this.products.set(p); this.loading.set(false); },
       error: () => { this.error.set('Could not load products. Is the backend running?'); this.loading.set(false); }
     });

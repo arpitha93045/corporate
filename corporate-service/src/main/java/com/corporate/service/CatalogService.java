@@ -29,10 +29,20 @@ public class CatalogService {
                 .toList();
     }
 
-    public List<ProductDto> listProducts(String categorySlug) {
-        List<Product> products = (categorySlug == null || categorySlug.isBlank())
-                ? productRepo.findAllByOrderByNameAsc()
-                : productRepo.findAllByCategorySlugOrderByNameAsc(categorySlug);
+    public List<ProductDto> listProducts(String categorySlug, String query) {
+        String slug = (categorySlug == null || categorySlug.isBlank()) ? null : categorySlug;
+        String q = query == null ? "" : query.trim();
+
+        List<Product> products;
+        if (q.isEmpty()) {
+            products = (slug == null)
+                    ? productRepo.findAllByOrderByNameAsc()
+                    : productRepo.findAllByCategorySlugOrderByNameAsc(slug);
+        } else {
+            String needle = "%" + q.toLowerCase(java.util.Locale.ROOT)
+                    .replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+            products = productRepo.search(needle, slug);
+        }
         return products.stream().map(ProductDto::from).toList();
     }
 
