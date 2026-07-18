@@ -202,3 +202,7 @@ export interface GiftRecipient {
   city: string;
   notes: string;
 }
+
+export interface BulkOrderRequest {
+  lines: { productSlug: string; quantity: number }[];
+}

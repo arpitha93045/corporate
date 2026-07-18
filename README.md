@@ -137,7 +137,7 @@ corporate/
 
 All under `/api`. JSON only. Endpoints marked **auth** require a `Authorization: Bearer <jwt>` header obtained from `/api/auth/login` or `/api/auth/register`.
 
-Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/api/auth/login` 10/min, `/api/enquiries` 10/min. Over-limit requests get HTTP 429 with a `Retry-After` header. Behind a reverse proxy, set `RATELIMIT_TRUST_FORWARDED_FOR=true` so the filter reads the client IP from `X-Forwarded-For` instead of the proxy's socket address.
+Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/api/auth/login` 10/min, `/api/enquiries` 10/min, `/api/agent/chat` 8/min, `/api/bulk-order/estimate` 20/min. Over-limit requests get HTTP 429 with a `Retry-After` header. Behind a reverse proxy, set `RATELIMIT_TRUST_FORWARDED_FOR=true` so the filter reads the client IP from `X-Forwarded-For` instead of the proxy's socket address.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -151,6 +151,7 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 | POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. |
 | GET  | `/api/orders/{orderNumber}` | **auth** | Fetch a placed order (owner only) |
 | POST | `/api/enquiries` | – | Submit a bulk-order enquiry; optionally emails ops if SMTP is configured |
+| POST | `/api/bulk-order/estimate` | – | Re-price a batch of `{productSlug, quantity}` lines (max 200) against the live catalog; returns a priced draft cart `{token, lines, totalCents, warnings}` the client adopts into the cart |
 | POST | `/api/agent/chat` | – | AI gifting concierge. Streams Server-Sent Events (`tool`, `draft_cart`, `message`, `done`, `error`). Returns 503 unless the agent is enabled + keyed. |
 | GET  | `/api/agent/draft-cart/{token}` | – | Fetch an agent-produced draft cart by its opaque token (used to adopt the proposal into the cart) |
 | GET  | `/actuator/health` | – | Bare `{"status":"UP"}` for load balancers / k8s probes |

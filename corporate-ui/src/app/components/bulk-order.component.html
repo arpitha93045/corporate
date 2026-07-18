@@ -1,0 +1,106 @@
+<section class="bulk-order">
+  <h1>Bulk order</h1>
+  <p class="lead">
+    Paste or upload a CSV of product slugs and quantities. We'll re-price every line
+    against the live catalog, flag anything out of stock, and let you add the lot to
+    your cart in one step.
+  </p>
+
+  <div class="bo-inputs">
+    <label class="bo-field">
+      <span>Order lines (CSV: slug, quantity)</span>
+      <textarea [(ngModel)]="csvText" rows="6"
+                placeholder="artisan-chocolate-box, 25&#10;ceramic-mug-duo, 50"></textarea>
+    </label>
+
+    <div class="bo-inline">
+      <label class="bo-field bo-file">
+        <span>…or upload a CSV</span>
+        <input type="file" accept=".csv,text/csv" (change)="onFile($event)" />
+      </label>
+      <button type="button" class="bo-btn bo-secondary" (click)="downloadTemplate()">
+        Download template
+      </button>
+    </div>
+
+    <button type="button" class="bo-btn" (click)="parse()">Parse rows</button>
+    @if (parseError()) {
+      <div class="bo-error">{{ parseError() }}</div>
+    }
+  </div>
+
+  @if (parsed().length > 0) {
+    <div class="bo-preview">
+      <h2>{{ parsed().length }} line{{ parsed().length === 1 ? '' : 's' }}</h2>
+      <table class="bo-table">
+        <thead>
+          <tr><th>Product slug</th><th>Quantity</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (r of parsed(); track $index) {
+            <tr>
+              <td><input type="text" [(ngModel)]="r.productSlug" /></td>
+              <td><input type="number" min="1" [(ngModel)]="r.quantity" /></td>
+              <td>
+                <button type="button" class="bo-remove" (click)="removeRow($index)"
+                        aria-label="Remove row">×</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <button type="button" class="bo-btn bo-estimate"
+              [disabled]="!canEstimate()" (click)="estimate()">
+        {{ loading() ? 'Pricing…' : 'Get estimate' }}
+      </button>
+    </div>
+  }
+
+  @if (draft(); as d) {
+    <div class="bo-result">
+      <div class="bo-draft">
+        <div class="bo-draft-title">Priced order</div>
+        @if (d.lines.length) {
+          <table class="bo-table">
+            <thead>
+              <tr><th>Product</th><th>Qty</th><th>Unit</th><th>Line total</th></tr>
+            </thead>
+            <tbody>
+              @for (line of d.lines; track line.productSlug) {
+                <tr>
+                  <td>{{ line.productName }}</td>
+                  <td>{{ line.quantity }}</td>
+                  <td>{{ line.unitPriceCents | money }}</td>
+                  <td>{{ line.lineTotalCents | money }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <div class="bo-draft-total">
+            <span>Estimated total</span>
+            <span>{{ d.totalCents | money }}</span>
+          </div>
+        } @else {
+          <p class="bo-empty">No lines could be priced. See the notes below.</p>
+        }
+
+        @if (d.warnings.length) {
+          <ul class="bo-warnings">
+            @for (w of d.warnings; track $index) { <li>{{ w }}</li> }
+          </ul>
+        }
+
+        @if (d.lines.length) {
+          <div class="bo-actions">
+            <button type="button" class="bo-btn" (click)="addAllToCart()">Add all to cart</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (error(); as err) {
+    <div class="bo-error">{{ err }}</div>
+  }
+</section>

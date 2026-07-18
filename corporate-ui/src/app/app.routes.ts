@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/gift-plan.component').then(m => m.GiftPlanComponent)
   },
   {
+    path: 'bulk-order',
+    loadComponent: () => import('./components/bulk-order.component').then(m => m.BulkOrderComponent)
+  },
+  {
     path: 'about',
     loadComponent: () => import('./components/about/about.component').then(m => m.AboutComponent)
   },

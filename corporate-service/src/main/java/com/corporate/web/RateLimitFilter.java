@@ -39,6 +39,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             // Each agent chat costs real Claude tokens — keep this tight.
             new Route("POST", "/api/agent/chat",
                     Bandwidth.builder().capacity(8).refillGreedy(8, Duration.ofMinutes(1)).build()),
+            // Bulk-order estimate is a DB-pricing call — cheap, but bound it so a
+            // scripted paste can't spam the pricing query.
+            new Route("POST", "/api/bulk-order/estimate",
+                    Bandwidth.builder().capacity(20).refillGreedy(20, Duration.ofMinutes(1)).build()),
     };
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
