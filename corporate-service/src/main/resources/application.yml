@@ -78,6 +78,14 @@ management:
         # health is anonymous (probes); metrics + prometheus are admin-only,
         # enforced in SecurityConfig (/actuator/** -> ROLE_ADMIN).
         include: health,metrics,prometheus
+  health:
+    # The mail health indicator opens an SMTP connection on every /health call.
+    # A default spring.mail.host is always present, so it would drag the
+    # aggregate health to DOWN whenever SMTP isn't reachable (the default —
+    # app.mail.enabled=false). That would leave the Docker/k8s healthcheck
+    # permanently failing. Mail deliverability isn't a liveness concern here.
+    mail:
+      enabled: false
   endpoint:
     health:
       # Never expose component-level details to anonymous callers — a bare
