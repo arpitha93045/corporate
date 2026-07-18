@@ -1,0 +1,64 @@
+@if (loading()) {
+  <p class="muted">Loading quote…</p>
+} @else if (notFound()) {
+  <h2>Quote not found</h2>
+  <p class="muted">This quote link may be invalid or expired.</p>
+  <p><a routerLink="/">Back to catalog</a></p>
+} @else if (quote(); as q) {
+  <section class="hero card">
+    <h1>Your quote</h1>
+    <p class="muted">
+      Prepared for
+      @if (q.companyName) { <strong>{{ q.companyName }}</strong> } @else { <strong>{{ q.contactName }}</strong> }
+      @if (q.occasion) { · {{ q.occasion }} }
+    </p>
+    <div class="status-line">Status: <strong>{{ q.status }}</strong></div>
+    @if (q.validUntil) {
+      <div class="muted small">Valid until {{ q.validUntil }}</div>
+    }
+  </section>
+
+  <section class="card panel">
+    <h3>Items</h3>
+    <ul class="items">
+      @for (l of q.lines; track $index) {
+        <li>
+          <span class="name">{{ l.productName }} <span class="muted">&times; {{ l.quantity }}</span></span>
+          <span>{{ l.lineTotalCents | money }}</span>
+        </li>
+      }
+    </ul>
+    <div class="row total">
+      <span>Total</span>
+      <span>{{ q.totalCents | money }}</span>
+    </div>
+    @if (q.notes) {
+      <p class="notes">{{ q.notes }}</p>
+    }
+  </section>
+
+  @if (errorMsg()) {
+    <p class="error">{{ errorMsg() }}</p>
+  }
+
+  @if (canRespond) {
+    <div class="actions">
+      <button type="button" class="btn btn-primary" [disabled]="working()" (click)="accept()">
+        {{ working() ? 'Working…' : 'Accept quote' }}
+      </button>
+      <button type="button" class="btn btn-secondary" [disabled]="working()" (click)="decline()">
+        Decline
+      </button>
+    </div>
+  } @else if (q.status === 'ACCEPTED') {
+    <section class="card panel accepted">
+      <p><strong>You've accepted this quote.</strong></p>
+      <p class="muted">Add these items to your cart and complete checkout to place your order.</p>
+      <p><a routerLink="/" class="btn btn-primary">Browse catalog</a></p>
+    </section>
+  } @else if (q.status === 'DECLINED') {
+    <p class="muted">You've declined this quote. <a routerLink="/enquiry">Send a new enquiry</a> if you'd like a revised offer.</p>
+  } @else if (q.status === 'EXPIRED') {
+    <p class="muted">This quote has expired. <a routerLink="/enquiry">Request a new one</a>.</p>
+  }
+}

@@ -2,6 +2,10 @@ package com.corporate.entity;
 
 public enum EnquiryStatus {
     NEW,
-    CONTACTED,
+    REVIEWING,
+    QUOTED,
+    ACCEPTED,
+    DECLINED,
+    EXPIRED,
     CLOSED
 }

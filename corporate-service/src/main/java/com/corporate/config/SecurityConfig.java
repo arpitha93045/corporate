@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/agent/chat").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/bulk-order/estimate").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/agent/draft-cart/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/quotes/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/quotes/*/accept", "/api/quotes/*/decline").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/checkout").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/orders", "/api/orders/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()

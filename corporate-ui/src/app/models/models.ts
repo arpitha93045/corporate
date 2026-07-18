@@ -214,3 +214,32 @@ export interface GiftRecipient {
 export interface BulkOrderRequest {
   lines: { productSlug: string; quantity: number }[];
 }
+
+// ---- quotes (RFQ) ----
+
+export interface QuoteLine {
+  productName: string;
+  unitPriceCents: number;
+  quantity: number;
+  lineTotalCents: number;
+}
+
+export interface Quote {
+  token: string;
+  status: string;
+  totalCents: number;
+  notes: string | null;
+  validUntil: string | null;
+  createdAt: string;
+  companyName: string | null;
+  contactName: string;
+  email: string;
+  occasion: string | null;
+  lines: QuoteLine[];
+}
+
+export interface CreateQuoteRequest {
+  lines: { productId: number; quantity: number }[];
+  notes?: string;
+  validUntil?: string;
+}

@@ -7,8 +7,10 @@ import {
   AdminProduct,
   Category,
   CategoryUpsert,
+  CreateQuoteRequest,
   Order,
   ProductUpsert,
+  Quote,
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -58,5 +60,13 @@ export class AdminApiService {
 
   updateEnquiryStatus(id: number, status: string): Observable<AdminEnquiry> {
     return this.http.patch<AdminEnquiry>(`${this.base}/enquiries/${id}/status`, { status });
+  }
+
+  createQuote(enquiryId: number, req: CreateQuoteRequest): Observable<Quote> {
+    return this.http.post<Quote>(`${this.base}/enquiries/${enquiryId}/quote`, req);
+  }
+
+  getQuote(enquiryId: number): Observable<Quote> {
+    return this.http.get<Quote>(`${this.base}/enquiries/${enquiryId}/quote`);
   }
 }

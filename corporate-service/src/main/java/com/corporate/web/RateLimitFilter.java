@@ -27,21 +27,30 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private record Route(String method, String path, Bandwidth limit) {}
+    /**
+     * A rate-limited route. {@code prefix=false} matches the request URI exactly;
+     * {@code prefix=true} matches when the URI starts with {@code path} (for routes
+     * carrying a variable segment, e.g. /api/quotes/{token}/accept).
+     */
+    private record Route(String method, String path, boolean prefix, Bandwidth limit) {}
 
     private static final Route[] ROUTES = new Route[] {
-            new Route("POST", "/api/auth/register",
+            new Route("POST", "/api/auth/register", false,
                     Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build()),
-            new Route("POST", "/api/auth/login",
+            new Route("POST", "/api/auth/login", false,
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
-            new Route("POST", "/api/enquiries",
+            new Route("POST", "/api/enquiries", false,
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
             // Each agent chat costs real Claude tokens — keep this tight.
-            new Route("POST", "/api/agent/chat",
+            new Route("POST", "/api/agent/chat", false,
                     Bandwidth.builder().capacity(8).refillGreedy(8, Duration.ofMinutes(1)).build()),
             // Bulk-order estimate is a DB-pricing call — cheap, but bound it so a
             // scripted paste can't spam the pricing query.
-            new Route("POST", "/api/bulk-order/estimate",
+            new Route("POST", "/api/bulk-order/estimate", false,
+                    Bandwidth.builder().capacity(20).refillGreedy(20, Duration.ofMinutes(1)).build()),
+            // Anonymous quote accept/decline — bound so a leaked token can't be
+            // hammered. Matches /api/quotes/{token}/accept and .../decline.
+            new Route("POST", "/api/quotes/", true,
                     Bandwidth.builder().capacity(20).refillGreedy(20, Duration.ofMinutes(1)).build()),
     };
 
@@ -89,7 +98,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private Route matchRoute(HttpServletRequest req) {
         for (Route r : ROUTES) {
-            if (r.method().equals(req.getMethod()) && r.path().equals(req.getRequestURI())) {
+            if (!r.method().equals(req.getMethod())) continue;
+            String uri = req.getRequestURI();
+            if (r.prefix() ? uri.startsWith(r.path()) : r.path().equals(uri)) {
                 return r;
             }
         }

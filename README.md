@@ -64,6 +64,10 @@ DATABASE_PASSWORD=...
 # if JWT_SECRET is unset (the built-in dev default is rejected on the prod profile).
 JWT_SECRET=<at-least-32-bytes-of-random>     # maps to app.jwt.secret
 
+# Public frontend URL — used to build links in outbound email (e.g. the buyer's
+# quote link). Defaults to http://localhost:4200 for local dev.
+APP_BASE_URL=https://gifts.yourdomain.com    # maps to app.base-url
+
 # Mail — optional. When app.mail.enabled=false (default) the server logs
 # would-be sends instead of dispatching.
 MAIL_ENABLED=true                            # maps to app.mail.enabled
@@ -137,7 +141,7 @@ corporate/
 
 All under `/api`. JSON only. Endpoints marked **auth** require a `Authorization: Bearer <jwt>` header obtained from `/api/auth/login` or `/api/auth/register`.
 
-Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/api/auth/login` 10/min, `/api/enquiries` 10/min, `/api/agent/chat` 8/min, `/api/bulk-order/estimate` 20/min. Over-limit requests get HTTP 429 with a `Retry-After` header. Behind a reverse proxy, set `RATELIMIT_TRUST_FORWARDED_FOR=true` so the filter reads the client IP from `X-Forwarded-For` instead of the proxy's socket address.
+Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/api/auth/login` 10/min, `/api/enquiries` 10/min, `/api/agent/chat` 8/min, `/api/bulk-order/estimate` 20/min, `/api/quotes/**` (accept/decline) 20/min. Over-limit requests get HTTP 429 with a `Retry-After` header. Behind a reverse proxy, set `RATELIMIT_TRUST_FORWARDED_FOR=true` so the filter reads the client IP from `X-Forwarded-For` instead of the proxy's socket address.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -151,6 +155,10 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 | POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. Each `items[]` entry may carry optional `branding {message, logoUrl}` (per-line engraving text + logo URL); lines merge only when product **and** branding match. |
 | GET  | `/api/orders/{orderNumber}` | **auth** | Fetch a placed order (owner only) |
 | POST | `/api/enquiries` | – | Submit a bulk-order enquiry; optionally emails ops if SMTP is configured |
+| POST | `/api/admin/enquiries/{id}/quote` | **admin** | Issue an itemized quote for an enquiry. Body `{lines:[{productId,quantity}], notes?, validUntil?}` — **no prices**; the server prices every line from the catalog. Moves the enquiry to `QUOTED` and emails the buyer a `/quote/{token}` link. Replaces any prior quote. |
+| GET  | `/api/admin/enquiries/{id}/quote` | **admin** | Fetch the current quote for an enquiry (404 if none issued) |
+| GET  | `/api/quotes/{token}` | – | View a quote by its opaque token (public — the token is the capability). Auto-expires past `validUntil`. |
+| POST | `/api/quotes/{token}/accept`, `/api/quotes/{token}/decline` | – | Buyer accepts/declines a quote. Valid only while the quote is `SENT` (else 409). Flips the quote and its enquiry to ACCEPTED/DECLINED. |
 | POST | `/api/bulk-order/estimate` | – | Re-price a batch of `{productSlug, quantity}` lines (max 200) against the live catalog; returns a priced draft cart `{token, lines, totalCents, warnings}` the client adopts into the cart |
 | POST | `/api/agent/chat` | – | AI gifting concierge. Streams Server-Sent Events (`tool`, `draft_cart`, `message`, `done`, `error`). Returns 503 unless the agent is enabled + keyed. |
 | GET  | `/api/agent/draft-cart/{token}` | – | Fetch an agent-produced draft cart by its opaque token (used to adopt the proposal into the cart) |

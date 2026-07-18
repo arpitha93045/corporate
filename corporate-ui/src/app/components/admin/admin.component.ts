@@ -7,11 +7,23 @@ import {
   AdminOrderSummary,
   AdminProduct,
   Category,
+  CreateQuoteRequest,
   ProductUpsert,
+  Quote,
 } from '../../models/models';
 import { MoneyPipe } from '../../shared/money.pipe';
 
 type Tab = 'products' | 'orders' | 'enquiries';
+
+// Enquiry lifecycle states offered in the admin dropdown. Mirrors the backend
+// EnquiryStatus enum; buyer-driven states (ACCEPTED/DECLINED) and EXPIRED are
+// shown so an admin can see/correct them, but the normal path is via the quote.
+const ENQUIRY_STATUSES = ['NEW', 'REVIEWING', 'QUOTED', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'CLOSED'];
+
+interface QuoteDraftLine {
+  productId: number | null;
+  quantity: number;
+}
 
 const EMPTY_DRAFT: ProductUpsert = {
   name: '',
@@ -174,6 +186,81 @@ export class AdminComponent {
         this.enquiries.update(list => list.map(x => x.id === updated.id ? updated : x));
       },
       error: err => this.error.set(err?.error?.message ?? 'Status update failed.'),
+    });
+  }
+
+  // --- Quotes (RFQ) ---
+
+  protected readonly enquiryStatuses = ENQUIRY_STATUSES;
+  protected quoteFor = signal<number | null>(null);
+  protected quoteLines = signal<QuoteDraftLine[]>([]);
+  protected quoteNotes = signal<string>('');
+  protected quoteValidUntil = signal<string>('');
+  protected quoteResult = signal<Quote | null>(null);
+  protected quoteSaving = signal<boolean>(false);
+
+  openQuoteBuilder(e: AdminEnquiry) {
+    if (this.quoteFor() === e.id) {
+      this.quoteFor.set(null);
+      return;
+    }
+    this.quoteFor.set(e.id);
+    this.quoteLines.set([{ productId: this.products()[0]?.id ?? null, quantity: 1 }]);
+    this.quoteNotes.set('');
+    this.quoteValidUntil.set('');
+    this.quoteResult.set(null);
+    this.error.set(null);
+    if (this.products().length === 0) this.loadProducts();
+    // Show an existing quote if one was already issued.
+    this.api.getQuote(e.id).subscribe({
+      next: q => this.quoteResult.set(q),
+      error: () => {},
+    });
+  }
+
+  addQuoteLine() {
+    this.quoteLines.update(lines => [...lines, { productId: this.products()[0]?.id ?? null, quantity: 1 }]);
+  }
+
+  removeQuoteLine(index: number) {
+    this.quoteLines.update(lines => lines.filter((_, i) => i !== index));
+  }
+
+  setQuoteLineProduct(index: number, productId: number) {
+    this.quoteLines.update(lines => lines.map((l, i) => i === index ? { ...l, productId } : l));
+  }
+
+  setQuoteLineQuantity(index: number, quantity: number) {
+    this.quoteLines.update(lines => lines.map((l, i) => i === index ? { ...l, quantity } : l));
+  }
+
+  submitQuote(enquiryId: number) {
+    if (this.quoteSaving()) return;
+    const lines = this.quoteLines()
+      .filter(l => l.productId != null && l.quantity > 0)
+      .map(l => ({ productId: l.productId as number, quantity: l.quantity }));
+    if (lines.length === 0) {
+      this.error.set('Add at least one line with a product and quantity.');
+      return;
+    }
+    const req: CreateQuoteRequest = {
+      lines,
+      notes: this.quoteNotes().trim() || undefined,
+      validUntil: this.quoteValidUntil() || undefined,
+    };
+    this.quoteSaving.set(true);
+    this.error.set(null);
+    this.api.createQuote(enquiryId, req).subscribe({
+      next: q => {
+        this.quoteSaving.set(false);
+        this.quoteResult.set(q);
+        // Issuing a quote moved the enquiry to QUOTED — reflect it.
+        this.enquiries.update(list => list.map(x => x.id === enquiryId ? { ...x, status: 'QUOTED' } : x));
+      },
+      error: err => {
+        this.quoteSaving.set(false);
+        this.error.set(err?.error?.message ?? 'Failed to create quote.');
+      },
     });
   }
 }

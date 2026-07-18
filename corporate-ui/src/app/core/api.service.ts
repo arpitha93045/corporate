@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BulkOrderRequest, Category, CheckoutRequest, DraftCart, EnquiryRequest, Order, OrderSummary, PaymentIntentResponse, Product } from '../models/models';
+import { BulkOrderRequest, Category, CheckoutRequest, DraftCart, EnquiryRequest, Order, OrderSummary, PaymentIntentResponse, Product, Quote } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -48,5 +48,17 @@ export class ApiService {
 
   bulkOrderEstimate(req: BulkOrderRequest): Observable<DraftCart> {
     return this.http.post<DraftCart>(`${this.base}/bulk-order/estimate`, req);
+  }
+
+  quote(token: string): Observable<Quote> {
+    return this.http.get<Quote>(`${this.base}/quotes/${token}`);
+  }
+
+  acceptQuote(token: string): Observable<Quote> {
+    return this.http.post<Quote>(`${this.base}/quotes/${token}/accept`, {});
+  }
+
+  declineQuote(token: string): Observable<Quote> {
+    return this.http.post<Quote>(`${this.base}/quotes/${token}/decline`, {});
   }
 }

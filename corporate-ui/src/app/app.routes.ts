@@ -55,6 +55,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/bulk-order.component').then(m => m.BulkOrderComponent)
   },
   {
+    path: 'quote/:token',
+    loadComponent: () => import('./components/quote.component').then(m => m.QuoteComponent)
+  },
+  {
     path: 'about',
     loadComponent: () => import('./components/about/about.component').then(m => m.AboutComponent)
   },

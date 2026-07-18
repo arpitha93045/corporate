@@ -206,3 +206,12 @@
 .pill-pay-requires_action,
 .pill-pay-processing { background: #fff5db; color: #7a5a00; }
 .pill-pay-failed    { background: #fdecea; color: #8a1c14; }
+
+.quote-row td { background: #fafafa; }
+.quote-builder { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem 0; }
+.quote-builder h4 { margin: 0; }
+.quote-line { display: flex; gap: 0.5rem; align-items: center; }
+.quote-line .qty { width: 6rem; }
+.quote-meta { display: flex; gap: 1rem; flex-wrap: wrap; }
+.quote-meta label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
+.quote-result { border-top: 1px solid var(--border, #ddd); padding-top: 0.5rem; }

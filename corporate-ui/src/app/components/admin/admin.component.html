@@ -194,6 +194,7 @@
             <th>Message</th>
             <th class="num">Qty</th>
             <th>Status</th>
+            <th>Quote</th>
           </tr>
         </thead>
         <tbody>
@@ -212,14 +213,68 @@
                 <select [ngModel]="e.status"
                         (ngModelChange)="changeEnquiryStatus(e, $event)"
                         name="status-{{ e.id }}">
-                  <option value="NEW">NEW</option>
-                  <option value="IN_PROGRESS">IN_PROGRESS</option>
-                  <option value="CLOSED">CLOSED</option>
+                  @for (s of enquiryStatuses; track s) {
+                    <option [value]="s">{{ s }}</option>
+                  }
                 </select>
               </td>
+              <td>
+                <button type="button" class="btn ghost" (click)="openQuoteBuilder(e)">
+                  {{ quoteFor() === e.id ? 'Close' : 'Build quote' }}
+                </button>
+              </td>
             </tr>
+            @if (quoteFor() === e.id) {
+              <tr class="quote-row">
+                <td colspan="7">
+                  <div class="quote-builder">
+                    <h4>Quote for {{ e.name }}</h4>
+                    @for (line of quoteLines(); track $index) {
+                      <div class="quote-line">
+                        <select [ngModel]="line.productId"
+                                (ngModelChange)="setQuoteLineProduct($index, $event)"
+                                name="qp-{{ e.id }}-{{ $index }}">
+                          @for (p of products(); track p.id) {
+                            <option [value]="p.id">{{ p.name }} ({{ p.priceCents | money }})</option>
+                          }
+                        </select>
+                        <input type="number" min="1" [ngModel]="line.quantity"
+                               (ngModelChange)="setQuoteLineQuantity($index, $event)"
+                               name="qq-{{ e.id }}-{{ $index }}" class="qty" />
+                        <button type="button" class="btn ghost" (click)="removeQuoteLine($index)">Remove</button>
+                      </div>
+                    }
+                    <button type="button" class="btn ghost" (click)="addQuoteLine()">+ Add line</button>
+
+                    <div class="quote-meta">
+                      <label>Notes
+                        <textarea [ngModel]="quoteNotes()" (ngModelChange)="quoteNotes.set($event)"
+                                  name="qn-{{ e.id }}" rows="2"></textarea>
+                      </label>
+                      <label>Valid until
+                        <input type="date" [ngModel]="quoteValidUntil()"
+                               (ngModelChange)="quoteValidUntil.set($event)" name="qv-{{ e.id }}" />
+                      </label>
+                    </div>
+
+                    <button type="button" class="btn" [disabled]="quoteSaving()" (click)="submitQuote(e.id)">
+                      {{ quoteSaving() ? 'Sending…' : 'Send quote' }}
+                    </button>
+
+                    @if (quoteResult(); as q) {
+                      <div class="quote-result">
+                        <p>
+                          <strong>Quote {{ q.status }}</strong> · Total {{ q.totalCents | money }}
+                        </p>
+                        <p class="muted small">Buyer link: /quote/{{ q.token }}</p>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
           } @empty {
-            <tr><td colspan="6" class="muted">No enquiries yet.</td></tr>
+            <tr><td colspan="7" class="muted">No enquiries yet.</td></tr>
           }
         </tbody>
       </table>
