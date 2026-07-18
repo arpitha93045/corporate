@@ -44,6 +44,13 @@ jobs:
           cache: npm
           cache-dependency-path: corporate-ui/package-lock.json
 
+      # Pin npm to the version the lockfile was written with. The runner image
+      # may ship a newer npm (11.x) than Node bundles, and npm 11.0/11.1 crash
+      # on `npm ci` with "Exit handler never called!". This forces npm 10.9.8,
+      # matching the `packageManager` field in package.json.
+      - name: Pin npm
+        run: npm install -g npm@10.9.8
+
       - name: Install dependencies
         run: npm ci
 
