@@ -41,18 +41,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: corporate-ui/.nvmrc
-          cache: npm
-          cache-dependency-path: corporate-ui/package-lock.json
+          # `cache: npm` intentionally removed: a corrupt restored npm cache is
+          # the leading suspect for the `npm ci` "Exit handler never called!"
+          # crash (it persisted even after npm was pinned to 10.9.8). Re-add
+          # once the build is stable if cache speedup is wanted.
 
-      # Pin npm to the version the lockfile was written with. The runner image
-      # may ship a newer npm (11.x) than Node bundles, and npm 11.0/11.1 crash
-      # on `npm ci` with "Exit handler never called!". This forces npm 10.9.8,
-      # matching the `packageManager` field in package.json.
-      - name: Pin npm
-        run: npm install -g npm@10.9.8
+      - name: Versions + pin npm
+        run: |
+          node -v
+          npm -v
+          corepack enable
+          corepack prepare npm@10.9.8 --activate
+          npm -v
+          npm cache verify
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Dump npm debug log on failure
+        if: failure()
+        run: cat /home/runner/.npm/_logs/*-debug-0.log || true
 
       # No unit specs / test runner are configured yet (ng test would fail with
       # zero specs), so CI gates on a production build. Add `npm test` here once
