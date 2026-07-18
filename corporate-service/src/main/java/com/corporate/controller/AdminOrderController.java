@@ -5,6 +5,7 @@ import com.corporate.dto.OrderDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,5 +39,13 @@ public class AdminOrderController {
     public OrderDto updateStatus(@PathVariable String orderNumber,
                                  @Valid @RequestBody OrderStatusUpdateRequest req) {
         return service.updateStatus(orderNumber, req.status());
+    }
+
+    // Net-30 orders bypass Stripe; an admin marks the invoice paid once it clears
+    // out-of-band. This flips PLACED -> PAID, sets paidAt, and emails the buyer —
+    // kept separate from the generic status transition, which does none of that.
+    @PostMapping("/{orderNumber}/mark-invoice-paid")
+    public OrderDto markInvoicePaid(@PathVariable String orderNumber) {
+        return service.markInvoicePaid(orderNumber);
     }
 }

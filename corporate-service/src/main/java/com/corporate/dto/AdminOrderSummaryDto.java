@@ -11,6 +11,8 @@ public record AdminOrderSummaryDto(
         String status,
         String paymentStatus,
         Instant paidAt,
+        String paymentTerms,
+        String invoiceNumber,
         long subtotalCents,
         int itemCount,
         String companyName,

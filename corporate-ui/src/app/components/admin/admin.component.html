@@ -159,13 +159,19 @@
                 <span class="pill pill-{{ o.status.toLowerCase() }}">{{ o.status }}</span>
               </td>
               <td>
-                @if (o.paymentStatus) {
-                  <span class="pill pill-pay-{{ o.paymentStatus.toLowerCase() }}">{{ o.paymentStatus }}</span>
+                @if (o.paymentTerms === 'NET_30') {
+                  <span class="pill pill-net30" [title]="o.invoiceNumber ?? ''">Net-30</span>
                 } @else {
-                  <span class="muted">—</span>
+                  <span class="muted">Card</span>
+                }
+                @if (o.paymentStatus) {
+                  <br /><span class="pill pill-pay-{{ o.paymentStatus.toLowerCase() }}">{{ o.paymentStatus }}</span>
                 }
               </td>
               <td class="row-actions">
+                @if (o.paymentTerms === 'NET_30' && o.status === 'PLACED') {
+                  <button type="button" class="link-btn" (click)="markInvoicePaid(o)">Mark invoice paid</button>
+                }
                 @for (t of availableTransitions(o.status); track t) {
                   <button type="button" class="link-btn" (click)="changeOrderStatus(o, t)">→ {{ t }}</button>
                 }

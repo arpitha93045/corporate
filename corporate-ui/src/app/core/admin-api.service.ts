@@ -54,6 +54,10 @@ export class AdminApiService {
     return this.http.patch<Order>(`${this.base}/orders/${orderNumber}/status`, { status });
   }
 
+  markInvoicePaid(orderNumber: string): Observable<Order> {
+    return this.http.post<Order>(`${this.base}/orders/${orderNumber}/mark-invoice-paid`, {});
+  }
+
   listEnquiries(): Observable<AdminEnquiry[]> {
     return this.http.get<AdminEnquiry[]>(`${this.base}/enquiries`);
   }

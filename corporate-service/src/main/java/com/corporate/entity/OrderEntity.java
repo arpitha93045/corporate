@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +51,19 @@ public class OrderEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_terms", nullable = false)
+    private PaymentTerms paymentTerms = PaymentTerms.IMMEDIATE;
+
+    @Column(name = "po_number", length = 80)
+    private String poNumber;
+
+    @Column(name = "invoice_number", length = 40)
+    private String invoiceNumber;
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;
 
     @Column(name = "payment_intent_id")
     private String paymentIntentId;
@@ -102,6 +116,14 @@ public class OrderEntity {
     public void setIdempotencyKey(String v) { this.idempotencyKey = v; }
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus v) { this.status = v; }
+    public PaymentTerms getPaymentTerms() { return paymentTerms; }
+    public void setPaymentTerms(PaymentTerms v) { this.paymentTerms = v; }
+    public String getPoNumber() { return poNumber; }
+    public void setPoNumber(String v) { this.poNumber = v; }
+    public String getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(String v) { this.invoiceNumber = v; }
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate v) { this.dueDate = v; }
     public String getPaymentIntentId() { return paymentIntentId; }
     public void setPaymentIntentId(String v) { this.paymentIntentId = v; }
     public String getPaymentStatus() { return paymentStatus; }

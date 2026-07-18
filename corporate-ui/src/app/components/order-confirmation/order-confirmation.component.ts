@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { ApiService } from '../../core/api.service';
 import { Order } from '../../models/models';
 import { MoneyPipe } from '../../shared/money.pipe';
@@ -7,7 +8,7 @@ import { MoneyPipe } from '../../shared/money.pipe';
 @Component({
   selector: 'app-order-confirmation',
   standalone: true,
-  imports: [RouterLink, MoneyPipe],
+  imports: [RouterLink, MoneyPipe, DatePipe],
   templateUrl: './order-confirmation.component.html',
   styleUrl: './order-confirmation.component.css'
 })

@@ -5,6 +5,7 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { CartService } from '../../core/cart.service';
 import { MoneyPipe } from '../../shared/money.pipe';
+import { PaymentTerms } from '../../models/models';
 
 @Component({
   selector: 'app-checkout',
@@ -35,8 +36,25 @@ export class CheckoutComponent {
     city: ['', Validators.required],
     state: [''],
     postalCode: ['', Validators.required],
-    country: ['', Validators.required]
+    country: ['', Validators.required],
+    paymentTerms: ['IMMEDIATE' as PaymentTerms],
+    poNumber: ['']
   });
+
+  constructor() {
+    // A PO number is required only when paying by invoice (net-30). Toggle the
+    // validator with the choice and clear a stale PO when switching back to card.
+    this.form.controls.paymentTerms.valueChanges.subscribe(terms => {
+      const po = this.form.controls.poNumber;
+      if (terms === 'NET_30') {
+        po.addValidators(Validators.required);
+      } else {
+        po.clearValidators();
+        po.setValue('');
+      }
+      po.updateValueAndValidity();
+    });
+  }
 
   protected submit(): void {
     if (this.form.invalid) {
@@ -76,12 +94,20 @@ export class CheckoutComponent {
         productId: l.product.id,
         quantity: l.quantity,
         branding: l.branding ?? null
-      }))
+      })),
+      paymentTerms: v.paymentTerms,
+      poNumber: v.paymentTerms === 'NET_30' ? v.poNumber : undefined
     }, this.idempotencyKey).subscribe({
       next: order => {
         this.idempotencyKey = null;
         this.cart.clear();
-        this.router.navigate(['/pay', order.orderNumber]);
+        // Card orders go to Stripe; net-30 invoice orders are already confirmed
+        // (payable later) so go straight to the confirmation page.
+        if (order.paymentTerms === 'NET_30') {
+          this.router.navigate(['/order', order.orderNumber]);
+        } else {
+          this.router.navigate(['/pay', order.orderNumber]);
+        }
       },
       error: err => {
         this.submitting.set(false);

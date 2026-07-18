@@ -1,6 +1,7 @@
 package com.corporate.dto;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import com.corporate.entity.OrderEntity;
 
@@ -9,6 +10,10 @@ public record OrderDto(
         String status,
         String paymentStatus,
         Instant paidAt,
+        String paymentTerms,
+        String poNumber,
+        String invoiceNumber,
+        LocalDate dueDate,
         String companyName,
         String contactName,
         String email,
@@ -28,6 +33,10 @@ public record OrderDto(
                 o.getStatus().name(),
                 o.getPaymentStatus(),
                 o.getPaidAt(),
+                o.getPaymentTerms().name(),
+                o.getPoNumber(),
+                o.getInvoiceNumber(),
+                o.getDueDate(),
                 o.getCompanyName(),
                 o.getContactName(),
                 o.getEmail(),

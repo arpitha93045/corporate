@@ -58,6 +58,31 @@
         </div>
       </section>
 
+      <section class="form-section card">
+        <h3>Payment</h3>
+        <div class="pay-options">
+          <label class="pay-option">
+            <input type="radio" formControlName="paymentTerms" value="IMMEDIATE" />
+            <span>Pay now by card</span>
+          </label>
+          <label class="pay-option">
+            <input type="radio" formControlName="paymentTerms" value="NET_30" />
+            <span>Pay by invoice (net-30)</span>
+          </label>
+        </div>
+        @if (form.controls.paymentTerms.value === 'NET_30') {
+          <div class="po-field">
+            <label>Purchase order (PO) number</label>
+            <input type="text" formControlName="poNumber" maxlength="80"
+                   placeholder="e.g. PO-2026-0042" />
+            @if (form.controls.poNumber.touched && form.controls.poNumber.invalid) {
+              <p class="error small">A PO number is required for invoice orders.</p>
+            }
+            <p class="muted small">We'll email an invoice payable within 30 days. No card charged today.</p>
+          </div>
+        }
+      </section>
+
       @if (errorMsg()) {
         <p class="error">{{ errorMsg() }}</p>
       }

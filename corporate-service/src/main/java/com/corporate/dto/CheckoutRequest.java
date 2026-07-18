@@ -10,11 +10,16 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
+import com.corporate.entity.PaymentTerms;
 
 public record CheckoutRequest(
         @NotNull @Valid Customer customer,
         @NotNull @Valid ShippingAddress shippingAddress,
-        @NotEmpty @Valid List<Line> items
+        @NotEmpty @Valid List<Line> items,
+        // Optional. Null defaults to IMMEDIATE (card) — keeps the existing request
+        // shape valid. When NET_30, the service requires a non-blank poNumber.
+        PaymentTerms paymentTerms,
+        @Size(max = 80) String poNumber
 ) {
     public record Customer(
             @NotBlank String companyName,

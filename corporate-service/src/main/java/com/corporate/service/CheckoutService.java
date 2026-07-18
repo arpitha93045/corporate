@@ -12,11 +12,15 @@ import com.corporate.web.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.corporate.dto.CheckoutRequest;
+import com.corporate.entity.PaymentTerms;
+import com.corporate.mail.MailService;
+import com.corporate.mail.OrderMailFormatter;
 import com.corporate.web.InsufficientStockException;
 
 @Service
@@ -24,10 +28,15 @@ public class CheckoutService {
 
     private final ProductRepository productRepo;
     private final OrderRepository orderRepo;
+    private final MailService mail;
+    private final OrderMailFormatter mailFormatter;
 
-    public CheckoutService(ProductRepository productRepo, OrderRepository orderRepo) {
+    public CheckoutService(ProductRepository productRepo, OrderRepository orderRepo,
+                           MailService mail, OrderMailFormatter mailFormatter) {
         this.productRepo = productRepo;
         this.orderRepo = orderRepo;
+        this.mail = mail;
+        this.mailFormatter = mailFormatter;
     }
 
     @Transactional
@@ -63,6 +72,23 @@ public class CheckoutService {
         order.setState(req.shippingAddress().state());
         order.setPostalCode(req.shippingAddress().postalCode());
         order.setCountry(req.shippingAddress().country());
+
+        // Payment terms. Null defaults to IMMEDIATE (card), preserving the
+        // existing request shape. NET_30 orders are placed on invoice terms —
+        // a PO number is required and an invoice number + due date are assigned.
+        // The order still sits at PLACED and reserves stock like any other.
+        PaymentTerms terms = req.paymentTerms() == null ? PaymentTerms.IMMEDIATE : req.paymentTerms();
+        order.setPaymentTerms(terms);
+        if (terms == PaymentTerms.NET_30) {
+            String po = req.poNumber() == null ? "" : req.poNumber().trim();
+            if (po.isEmpty()) {
+                throw new IllegalArgumentException("A PO number is required for net-30 (pay by invoice) orders.");
+            }
+            order.setPoNumber(po);
+            order.setPaymentStatus("INVOICED");
+            order.setInvoiceNumber(generateInvoiceNumber());
+            order.setDueDate(LocalDate.now().plusDays(30));
+        }
 
         // A product may appear in several branding groups. Stock must be checked
         // and decremented once per product against the combined quantity, or two
@@ -113,6 +139,14 @@ public class CheckoutService {
         order.setSubtotalCents(subtotal);
 
         OrderEntity saved = orderRepo.save(order);
+
+        // Net-30 orders get an invoice emailed at checkout. Card orders get their
+        // confirmation email later, on the PLACED -> PAID webhook transition.
+        if (saved.getPaymentTerms() == PaymentTerms.NET_30) {
+            mail.sendIfEnabled(saved.getEmail(),
+                    mailFormatter.invoiceSubject(saved),
+                    mailFormatter.invoiceBody(saved));
+        }
         return OrderDto.from(saved);
     }
 
@@ -136,6 +170,11 @@ public class CheckoutService {
     private String generateOrderNumber() {
         long seq = orderRepo.nextOrderNumberSeq();
         return "CG-%d-%06d".formatted(Year.now().getValue(), seq);
+    }
+
+    private String generateInvoiceNumber() {
+        long seq = orderRepo.nextInvoiceNumberSeq();
+        return "INV-%d-%06d".formatted(Year.now().getValue(), seq);
     }
 
     /**

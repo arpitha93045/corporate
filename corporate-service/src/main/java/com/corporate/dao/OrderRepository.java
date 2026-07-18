@@ -20,4 +20,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     @Query(value = "SELECT nextval('order_number_seq')", nativeQuery = true)
     long nextOrderNumberSeq();
+
+    @Query(value = "SELECT nextval('invoice_number_seq')", nativeQuery = true)
+    long nextInvoiceNumberSeq();
 }

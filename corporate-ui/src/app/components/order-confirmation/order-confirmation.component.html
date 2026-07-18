@@ -10,8 +10,16 @@
     <p class="muted">Your order has been placed. We'll email a confirmation to <strong>{{ o.email }}</strong>.</p>
     <div class="order-number">Order <strong>{{ o.orderNumber }}</strong></div>
     <div class="order-number">Status: <strong>{{ o.status }}</strong></div>
-    @if (o.status !== 'PAID' && o.status !== 'CANCELLED') {
+    @if (o.paymentTerms === 'IMMEDIATE' && o.status !== 'PAID' && o.status !== 'CANCELLED') {
       <p><a [routerLink]="['/pay', o.orderNumber]" class="btn btn-primary">Pay now</a></p>
+    }
+    @if (o.paymentTerms === 'NET_30') {
+      <div class="invoice-note">
+        <p><strong>Invoice {{ o.invoiceNumber }}</strong> — net-30 terms</p>
+        <p>PO number: <strong>{{ o.poNumber }}</strong></p>
+        @if (o.dueDate) { <p>Payable by <strong>{{ o.dueDate | date:'mediumDate' }}</strong></p> }
+        <p class="muted">Invoice emailed to <strong>{{ o.email }}</strong> — payable within 30 days. No card charged today.</p>
+      </div>
     }
   </section>
 

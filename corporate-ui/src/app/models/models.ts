@@ -51,6 +51,10 @@ export interface Order {
   status: string;
   paymentStatus: string | null;
   paidAt: string | null;
+  paymentTerms: string;
+  poNumber: string | null;
+  invoiceNumber: string | null;
+  dueDate: string | null;
   companyName: string;
   contactName: string;
   email: string;
@@ -75,7 +79,11 @@ export interface CheckoutRequest {
   };
   shippingAddress: OrderAddress;
   items: { productId: number; quantity: number; branding?: Branding | null }[];
+  paymentTerms?: PaymentTerms;
+  poNumber?: string;
 }
+
+export type PaymentTerms = 'IMMEDIATE' | 'NET_30';
 
 export interface UserSummary {
   id: number;
@@ -160,6 +168,8 @@ export interface AdminOrderSummary {
   status: string;
   paymentStatus: string | null;
   paidAt: string | null;
+  paymentTerms: string;
+  invoiceNumber: string | null;
   subtotalCents: number;
   itemCount: number;
   companyName: string;

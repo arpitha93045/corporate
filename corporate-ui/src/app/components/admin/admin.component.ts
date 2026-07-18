@@ -162,6 +162,14 @@ export class AdminComponent {
     });
   }
 
+  markInvoicePaid(o: AdminOrderSummary) {
+    if (!confirm(`Mark invoice ${o.invoiceNumber} (order ${o.orderNumber}) as paid?`)) return;
+    this.api.markInvoicePaid(o.orderNumber).subscribe({
+      next: () => this.loadOrders(),
+      error: err => this.error.set(err?.error?.message ?? 'Failed to mark invoice paid.'),
+    });
+  }
+
   // Which transitions the admin can offer, mirroring backend AdminOrderService.
   availableTransitions(status: string): string[] {
     switch (status) {

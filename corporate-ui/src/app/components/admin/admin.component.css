@@ -206,6 +206,8 @@
 .pill-pay-requires_action,
 .pill-pay-processing { background: #fff5db; color: #7a5a00; }
 .pill-pay-failed    { background: #fdecea; color: #8a1c14; }
+.pill-pay-invoiced  { background: #eef2ff; color: #3730a3; }
+.pill-net30         { background: #eef2ff; color: #3730a3; }
 
 .quote-row td { background: #fafafa; }
 .quote-builder { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem 0; }

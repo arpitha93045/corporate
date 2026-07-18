@@ -33,3 +33,6 @@
 }
 
 .address { margin: 0; line-height: 1.55; }
+
+.invoice-note { margin-top: 1rem; padding: 0.85rem 1rem; background: #eef2ff; border-radius: 8px; text-align: left; }
+.invoice-note p { margin: 0.2rem 0; }

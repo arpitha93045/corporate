@@ -39,19 +39,7 @@ public class OrderMailFormatter {
         }
         sb.append('\n').append("Items\n").append("-----\n");
 
-        for (OrderItem item : order.getItems()) {
-            sb.append("- ").append(item.getProductName())
-              .append("  x").append(item.getQuantity())
-              .append("  ").append(formatMoney(item.getLineTotalCents()))
-              .append('\n');
-
-            if (item.getBrandingMessage() != null && !item.getBrandingMessage().isBlank()) {
-                sb.append("    Engraving: \"").append(item.getBrandingMessage()).append("\"\n");
-            }
-            if (item.getBrandingLogoUrl() != null && !item.getBrandingLogoUrl().isBlank()) {
-                sb.append("    Logo: ").append(item.getBrandingLogoUrl()).append('\n');
-            }
-        }
+        appendItems(sb, order);
 
         sb.append('\n')
           .append("Total: ").append(formatMoney(order.getSubtotalCents())).append('\n')
@@ -76,6 +64,53 @@ public class OrderMailFormatter {
           .append("— Corporate Gifting\n");
 
         return sb.toString();
+    }
+
+    public String invoiceSubject(OrderEntity order) {
+        return "Invoice " + order.getInvoiceNumber() + " — order " + order.getOrderNumber();
+    }
+
+    public String invoiceBody(OrderEntity order) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Hi ").append(order.getContactName()).append(",\n\n")
+          .append("Thanks for your order with Corporate Gifting. ")
+          .append("This order is placed on net-30 invoice terms — no payment is due today.\n\n")
+          .append("Order: ").append(order.getOrderNumber()).append('\n')
+          .append("Invoice: ").append(order.getInvoiceNumber()).append('\n');
+
+        if (order.getPoNumber() != null && !order.getPoNumber().isBlank()) {
+            sb.append("PO number: ").append(order.getPoNumber()).append('\n');
+        }
+        if (order.getDueDate() != null) {
+            sb.append("Payment due by: ").append(order.getDueDate()).append(" (net-30)\n");
+        }
+        sb.append('\n').append("Items\n").append("-----\n");
+
+        appendItems(sb, order);
+
+        sb.append('\n')
+          .append("Total due: ").append(formatMoney(order.getSubtotalCents())).append('\n')
+          .append('\n')
+          .append("Please settle this invoice within 30 days.\n")
+          .append("— Corporate Gifting\n");
+
+        return sb.toString();
+    }
+
+    private static void appendItems(StringBuilder sb, OrderEntity order) {
+        for (OrderItem item : order.getItems()) {
+            sb.append("- ").append(item.getProductName())
+              .append("  x").append(item.getQuantity())
+              .append("  ").append(formatMoney(item.getLineTotalCents()))
+              .append('\n');
+
+            if (item.getBrandingMessage() != null && !item.getBrandingMessage().isBlank()) {
+                sb.append("    Engraving: \"").append(item.getBrandingMessage()).append("\"\n");
+            }
+            if (item.getBrandingLogoUrl() != null && !item.getBrandingLogoUrl().isBlank()) {
+                sb.append("    Logo: ").append(item.getBrandingLogoUrl()).append('\n');
+            }
+        }
     }
 
     private static String formatMoney(long cents) {
