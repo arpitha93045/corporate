@@ -1,0 +1,23 @@
+# Edge reverse proxy with automatic HTTPS.
+#
+# SITE_ADDRESS controls the site + TLS behaviour:
+#   - a real domain (e.g. gifts.example.com) => automatic Let's Encrypt HTTPS
+#   - "localhost" or ":80"                    => local HTTP, no public cert
+#
+# Point DNS at this host and set SITE_ADDRESS=your.domain for prod TLS.
+{$SITE_ADDRESS:localhost} {
+	encode gzip
+
+	# API + actuator go to the backend. Caddy sets X-Forwarded-For, so the
+	# backend must run with RATELIMIT_TRUST_FORWARDED_FOR=true for correct
+	# per-client rate limiting.
+	@backend path /api/* /actuator/*
+	handle @backend {
+		reverse_proxy backend:8080
+	}
+
+	# Everything else is the Angular SPA (nginx handles the deep-link fallback).
+	handle {
+		reverse_proxy frontend:80
+	}
+}

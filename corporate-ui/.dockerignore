@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.angular/
+.idea/
+*.iml
+.git/
+.gitignore
+*.md
+.DS_Store
+.vscode/

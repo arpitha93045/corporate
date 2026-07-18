@@ -103,6 +103,27 @@ java -jar target/corporate-1.0-SNAPSHOT.jar --spring.profiles.active=prod
 
 For the frontend, `ng build` produces a static bundle in `corporate-ui/dist/corporate-ui/` that can be served behind any reverse proxy. Point its `/api` upstream at the backend.
 
+## Deploy with Docker Compose
+
+A one-command, prod-like stack lives in `docker-compose.yml`: **Postgres** (persistent volume) + the **Spring Boot backend** (multi-stage build) + the **Angular SPA** on nginx, all behind a **Caddy** edge proxy that terminates TLS with automatic HTTPS. Because the frontend calls the API on relative `/api` paths, Caddy fronts both same-origin — no CORS in prod.
+
+```bash
+cp .env.example .env      # then edit — see the notes inside
+docker compose up --build
+```
+
+`.env` drives everything (it's gitignored — never commit real secrets). Key vars:
+
+- `SITE_ADDRESS` — a real domain enables automatic Let's Encrypt HTTPS; use `localhost` for a local HTTP test.
+- `APP_BASE_URL` — your public `https://` URL (used to build email links).
+- `POSTGRES_*`, `JWT_SECRET` (≥32 bytes; `openssl rand -base64 48`).
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — **required**: the backend refuses to boot on the `prod` profile with the placeholder values.
+
+Notes:
+- The backend runs with `RATELIMIT_TRUST_FORWARDED_FOR=true` (set in compose) so per-IP rate limits use the real client IP that Caddy forwards.
+- Postgres publishes no host port — only the backend reaches it over the internal network. Flyway runs migrations (V1–V13) on first boot.
+- Verify: `curl -k https://localhost/actuator/health` → `{"status":"UP"}`; `https://localhost/` serves the SPA (deep links like `/products/<slug>` survive a reload via the nginx fallback).
+
 ## Project layout
 
 ```
