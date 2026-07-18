@@ -14,10 +14,10 @@ jobs:
       run:
         working-directory: corporate-service
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -35,32 +35,15 @@ jobs:
       run:
         working-directory: corporate-ui
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: corporate-ui/.nvmrc
-          # `cache: npm` intentionally removed: a corrupt restored npm cache is
-          # the leading suspect for the `npm ci` "Exit handler never called!"
-          # crash (it persisted even after npm was pinned to 10.9.8). Re-add
-          # once the build is stable if cache speedup is wanted.
-
-      - name: Versions + pin npm
-        run: |
-          node -v
-          npm -v
-          corepack enable
-          corepack prepare npm@10.9.8 --activate
-          npm -v
-          npm cache verify
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Dump npm debug log on failure
-        if: failure()
-        run: cat /home/runner/.npm/_logs/*-debug-0.log || true
 
       # No unit specs / test runner are configured yet (ng test would fail with
       # zero specs), so CI gates on a production build. Add `npm test` here once
