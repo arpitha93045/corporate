@@ -148,7 +148,7 @@ Anonymous POSTs are rate-limited per client IP: `/api/auth/register` 5/min, `/ap
 | POST | `/api/auth/register` | – | Create an account; returns `{ token, expiresInSeconds, user }` |
 | POST | `/api/auth/login` | – | Sign in; returns the same shape |
 | GET  | `/api/auth/me` | **auth** | Current user summary |
-| POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. |
+| POST | `/api/checkout` | **auth** | Place an order. Accepts optional `Idempotency-Key` header (up to 80 chars); replaying the same key for the same user returns the original order instead of creating a duplicate. Each `items[]` entry may carry optional `branding {message, logoUrl}` (per-line engraving text + logo URL); lines merge only when product **and** branding match. |
 | GET  | `/api/orders/{orderNumber}` | **auth** | Fetch a placed order (owner only) |
 | POST | `/api/enquiries` | – | Submit a bulk-order enquiry; optionally emails ops if SMTP is configured |
 | POST | `/api/bulk-order/estimate` | – | Re-price a batch of `{productSlug, quantity}` lines (max 200) against the live catalog; returns a priced draft cart `{token, lines, totalCents, warnings}` the client adopts into the cart |

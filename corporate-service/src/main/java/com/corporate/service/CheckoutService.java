@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Year;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.corporate.dto.CheckoutRequest;
 import com.corporate.web.InsufficientStockException;
@@ -38,9 +39,10 @@ public class CheckoutService {
             }
         }
 
-        Map<Long, Integer> mergedQuantities = new HashMap<>();
+        Map<GroupKey, Integer> mergedQuantities = new LinkedHashMap<>();
         for (CheckoutRequest.Line line : req.items()) {
-            mergedQuantities.merge(line.productId(), line.quantity(), Integer::sum);
+            GroupKey key = GroupKey.of(line.productId(), line.branding());
+            mergedQuantities.merge(key, line.quantity(), Integer::sum);
         }
 
         OrderEntity order = new OrderEntity();
@@ -62,20 +64,36 @@ public class CheckoutService {
         order.setPostalCode(req.shippingAddress().postalCode());
         order.setCountry(req.shippingAddress().country());
 
-        long subtotal = 0L;
-        for (Map.Entry<Long, Integer> entry : mergedQuantities.entrySet()) {
+        // A product may appear in several branding groups. Stock must be checked
+        // and decremented once per product against the combined quantity, or two
+        // branded groups could each pass a check they'd jointly fail.
+        Map<Long, Integer> totalByProduct = new HashMap<>();
+        for (Map.Entry<GroupKey, Integer> entry : mergedQuantities.entrySet()) {
+            totalByProduct.merge(entry.getKey().productId(), entry.getValue(), Integer::sum);
+        }
+
+        Map<Long, Product> locked = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : totalByProduct.entrySet()) {
             Long productId = entry.getKey();
-            int qty = entry.getValue();
+            int totalQty = entry.getValue();
 
             Product product = productRepo.findByIdForUpdate(productId)
                     .orElseThrow(() -> new NotFoundException("Product not found: " + productId));
 
-            if (product.getStockQuantity() < qty) {
+            if (product.getStockQuantity() < totalQty) {
                 throw new InsufficientStockException(
                         "Not enough stock for %s (requested %d, available %d)"
-                                .formatted(product.getName(), qty, product.getStockQuantity()));
+                                .formatted(product.getName(), totalQty, product.getStockQuantity()));
             }
-            product.setStockQuantity(product.getStockQuantity() - qty);
+            product.setStockQuantity(product.getStockQuantity() - totalQty);
+            locked.put(productId, product);
+        }
+
+        long subtotal = 0L;
+        for (Map.Entry<GroupKey, Integer> entry : mergedQuantities.entrySet()) {
+            GroupKey key = entry.getKey();
+            int qty = entry.getValue();
+            Product product = locked.get(key.productId());
 
             long unitPrice = product.getPriceCents();
             long lineTotal = unitPrice * qty;
@@ -86,6 +104,8 @@ public class CheckoutService {
             item.setUnitPriceCents(unitPrice);
             item.setQuantity(qty);
             item.setLineTotalCents(lineTotal);
+            item.setBrandingMessage(key.message());
+            item.setBrandingLogoUrl(key.logoUrl());
             order.addItem(item);
 
             subtotal += lineTotal;
@@ -116,5 +136,25 @@ public class CheckoutService {
     private String generateOrderNumber() {
         long seq = orderRepo.nextOrderNumberSeq();
         return "CG-%d-%06d".formatted(Year.now().getValue(), seq);
+    }
+
+    /**
+     * Merge key for order lines: same product + same normalized branding merge
+     * into one order item; differing branding stays separate. Blank branding
+     * fields normalize to null so empty UI inputs don't split a line.
+     */
+    private record GroupKey(Long productId, String message, String logoUrl) {
+        static GroupKey of(Long productId, CheckoutRequest.Branding branding) {
+            if (branding == null) {
+                return new GroupKey(productId, null, null);
+            }
+            return new GroupKey(productId, normalize(branding.message()), normalize(branding.logoUrl()));
+        }
+
+        private static String normalize(String s) {
+            if (s == null) return null;
+            String trimmed = s.trim();
+            return trimmed.isEmpty() ? null : trimmed;
+        }
     }
 }

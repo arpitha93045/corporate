@@ -70,9 +70,16 @@
     <aside class="summary card">
       <h3>Order summary</h3>
       <ul class="lines">
-        @for (line of cart.lines(); track line.product.id) {
+        @for (line of cart.lines(); track $index) {
           <li>
-            <span class="name">{{ line.product.name }} <span class="muted">&times; {{ line.quantity }}</span></span>
+            <span class="name">{{ line.product.name }} <span class="muted">&times; {{ line.quantity }}</span>
+              @if (line.branding?.message || line.branding?.logoUrl) {
+                <span class="branding-note muted small">
+                  @if (line.branding?.message) { <span>“{{ line.branding!.message }}”</span> }
+                  @if (line.branding?.logoUrl) { <span>· logo attached</span> }
+                </span>
+              }
+            </span>
             <span>{{ line.product.priceCents * line.quantity | money }}</span>
           </li>
         }

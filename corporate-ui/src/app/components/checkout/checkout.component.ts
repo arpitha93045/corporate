@@ -72,7 +72,11 @@ export class CheckoutComponent {
         city: v.city, state: v.state || null,
         postalCode: v.postalCode, country: v.country
       },
-      items: this.cart.lines().map(l => ({ productId: l.product.id, quantity: l.quantity }))
+      items: this.cart.lines().map(l => ({
+        productId: l.product.id,
+        quantity: l.quantity,
+        branding: l.branding ?? null
+      }))
     }, this.idempotencyKey).subscribe({
       next: order => {
         this.idempotencyKey = null;

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -32,6 +34,19 @@ public record CheckoutRequest(
 
     public record Line(
             @NotNull Long productId,
-            @Min(1) int quantity
+            @Min(1) int quantity,
+            @Valid Branding branding
+    ) {}
+
+    /**
+     * Optional per-line branding: a message/engraving and/or a logo URL. Both
+     * fields are optional; an all-blank branding is treated as "no branding" by
+     * the service. Validated at the boundary — logoUrl must be blank or http(s).
+     */
+    public record Branding(
+            @Size(max = 500) String message,
+            @Size(max = 1000)
+            @Pattern(regexp = "^$|^https?://.*", message = "logo URL must be http(s)")
+            String logoUrl
     ) {}
 }

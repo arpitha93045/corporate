@@ -38,6 +38,12 @@ public class OrderItem {
     @Column(name = "line_total_cents", nullable = false)
     private long lineTotalCents;
 
+    @Column(name = "branding_message")
+    private String brandingMessage;
+
+    @Column(name = "branding_logo_url")
+    private String brandingLogoUrl;
+
     public Long getId() { return id; }
     public OrderEntity getOrder() { return order; }
     public void setOrder(OrderEntity v) { this.order = v; }
@@ -51,4 +57,8 @@ public class OrderItem {
     public void setQuantity(int v) { this.quantity = v; }
     public long getLineTotalCents() { return lineTotalCents; }
     public void setLineTotalCents(long v) { this.lineTotalCents = v; }
+    public String getBrandingMessage() { return brandingMessage; }
+    public void setBrandingMessage(String v) { this.brandingMessage = v; }
+    public String getBrandingLogoUrl() { return brandingLogoUrl; }
+    public void setBrandingLogoUrl(String v) { this.brandingLogoUrl = v; }
 }

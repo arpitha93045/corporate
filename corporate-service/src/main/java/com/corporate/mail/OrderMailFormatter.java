@@ -44,6 +44,13 @@ public class OrderMailFormatter {
               .append("  x").append(item.getQuantity())
               .append("  ").append(formatMoney(item.getLineTotalCents()))
               .append('\n');
+
+            if (item.getBrandingMessage() != null && !item.getBrandingMessage().isBlank()) {
+                sb.append("    Engraving: \"").append(item.getBrandingMessage()).append("\"\n");
+            }
+            if (item.getBrandingLogoUrl() != null && !item.getBrandingLogoUrl().isBlank()) {
+                sb.append("    Logo: ").append(item.getBrandingLogoUrl()).append('\n');
+            }
         }
 
         sb.append('\n')

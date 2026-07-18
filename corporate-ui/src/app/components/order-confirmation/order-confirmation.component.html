@@ -19,9 +19,16 @@
     <section class="card panel">
       <h3>Items</h3>
       <ul class="items">
-        @for (i of o.items; track i.productId) {
+        @for (i of o.items; track $index) {
           <li>
-            <span class="name">{{ i.productName }} <span class="muted">&times; {{ i.quantity }}</span></span>
+            <span class="name">{{ i.productName }} <span class="muted">&times; {{ i.quantity }}</span>
+              @if (i.brandingMessage || i.brandingLogoUrl) {
+                <span class="branding-note muted small">
+                  @if (i.brandingMessage) { <span>“{{ i.brandingMessage }}”</span> }
+                  @if (i.brandingLogoUrl) { <span>· <a [href]="i.brandingLogoUrl" target="_blank" rel="noopener">logo</a></span> }
+                </span>
+              }
+            </span>
             <span>{{ i.lineTotalCents | money }}</span>
           </li>
         }

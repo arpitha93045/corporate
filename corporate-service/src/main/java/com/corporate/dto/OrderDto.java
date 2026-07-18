@@ -19,7 +19,8 @@ public record OrderDto(
         Instant createdAt
 ) {
     public record Address(String line1, String line2, String city, String state, String postalCode, String country) {}
-    public record Item(Long productId, String productName, long unitPriceCents, int quantity, long lineTotalCents) {}
+    public record Item(Long productId, String productName, long unitPriceCents, int quantity, long lineTotalCents,
+                       String brandingMessage, String brandingLogoUrl) {}
 
     public static OrderDto from(OrderEntity o) {
         return new OrderDto(
@@ -42,7 +43,9 @@ public record OrderDto(
                                 i.getProductName(),
                                 i.getUnitPriceCents(),
                                 i.getQuantity(),
-                                i.getLineTotalCents()))
+                                i.getLineTotalCents(),
+                                i.getBrandingMessage(),
+                                i.getBrandingLogoUrl()))
                         .toList(),
                 o.getSubtotalCents(),
                 o.getCreatedAt()

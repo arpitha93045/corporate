@@ -16,9 +16,15 @@ export interface Product {
   categorySlug: string;
 }
 
+export interface Branding {
+  message: string | null;
+  logoUrl: string | null;
+}
+
 export interface CartLine {
   product: Product;
   quantity: number;
+  branding?: Branding;
 }
 
 export interface OrderItem {
@@ -27,6 +33,8 @@ export interface OrderItem {
   unitPriceCents: number;
   quantity: number;
   lineTotalCents: number;
+  brandingMessage: string | null;
+  brandingLogoUrl: string | null;
 }
 
 export interface OrderAddress {
@@ -66,7 +74,7 @@ export interface CheckoutRequest {
     phone: string;
   };
   shippingAddress: OrderAddress;
-  items: { productId: number; quantity: number }[];
+  items: { productId: number; quantity: number; branding?: Branding | null }[];
 }
 
 export interface UserSummary {
