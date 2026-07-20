@@ -45,8 +45,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # No unit specs / test runner are configured yet (ng test would fail with
-      # zero specs), so CI gates on a production build. Add `npm test` here once
-      # a test runner and specs land.
+      # Unit specs run headless via Vitest (@angular/build:unit-test).
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
