@@ -26,6 +26,29 @@ public class MailService {
         this.from = from;
     }
 
+    /**
+     * Sends a password-reset link. When mail is disabled (dev/h2) the link is
+     * logged so the flow is testable without SMTP; the link is deliberately
+     * NEVER logged when mail is enabled, so a real deployment can't leak reset
+     * tokens into logs.
+     */
+    public void sendResetLink(String to, String link) {
+        if (!enabled) {
+            log.info("Mail disabled; password reset link for {} -> {}", to, link);
+            return;
+        }
+        String body = """
+                We received a request to reset the password for your Corporate Gifting account.
+
+                Reset your password using the link below. It expires in 1 hour and can be used once.
+
+                %s
+
+                If you didn't request this, you can safely ignore this email — your password won't change.
+                """.formatted(link);
+        sendIfEnabled(to, "Reset your Corporate Gifting password", body);
+    }
+
     public void sendIfEnabled(String to, String subject, String body) {
         if (!enabled) {
             log.info("Mail disabled; would have sent to={} subject={}", to, subject);

@@ -3,6 +3,10 @@
     <h1>Sign in</h1>
     <p class="muted">Welcome back. Sign in to place orders and track them.</p>
 
+    @if (resetDone) {
+      <p class="muted">Your password has been reset. Sign in with your new password.</p>
+    }
+
     <form [formGroup]="form" (ngSubmit)="submit()" class="form">
       <div>
         <label>Email</label>
@@ -22,6 +26,9 @@
       </button>
     </form>
 
+    <p class="muted small">
+      <a routerLink="/forgot-password">Forgot password?</a>
+    </p>
     <p class="muted small">
       New here?
       <a routerLink="/signup" [queryParams]="redirectQuery">Create an account</a>.

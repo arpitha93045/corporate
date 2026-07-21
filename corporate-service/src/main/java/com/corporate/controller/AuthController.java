@@ -29,6 +29,16 @@ public class AuthController {
         return auth.login(req);
     }
 
+    @PostMapping("/forgot-password")
+    public void forgotPassword(@Valid @RequestBody AuthDtos.ForgotPasswordRequest req) {
+        auth.requestReset(req);
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword(@Valid @RequestBody AuthDtos.ResetPasswordRequest req) {
+        auth.resetPassword(req);
+    }
+
     @GetMapping("/me")
     public AuthDtos.UserSummary me(@AuthenticationPrincipal AuthenticatedUser principal) {
         return auth.me(principal.id());

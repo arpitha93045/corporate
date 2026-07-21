@@ -47,4 +47,8 @@ export class LoginComponent {
     const r = this.route.snapshot.queryParamMap.get('redirect');
     return r ? { redirect: r } : {};
   }
+
+  protected get resetDone(): boolean {
+    return this.route.snapshot.queryParamMap.get('reset') === '1';
+  }
 }

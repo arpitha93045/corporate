@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, LoginRequest, RegisterRequest, UserSummary } from '../models/models';
+import { AuthResponse, ForgotPasswordRequest, LoginRequest, RegisterRequest, ResetPasswordRequest, UserSummary } from '../models/models';
 
 const TOKEN_KEY = 'cg.auth.token';
 const USER_KEY = 'cg.auth.user';
@@ -28,6 +28,14 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.base}/login`, req).pipe(
       tap(res => this.persist(res))
     );
+  }
+
+  forgotPassword(req: ForgotPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/forgot-password`, req);
+  }
+
+  resetPassword(req: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/reset-password`, req);
   }
 
   logout(): void {

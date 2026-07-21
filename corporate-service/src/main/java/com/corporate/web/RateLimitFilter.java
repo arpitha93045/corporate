@@ -39,6 +39,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build()),
             new Route("POST", "/api/auth/login", false,
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
+            // Forgot-password: bound tight to stop mail-bombing and enumeration probing.
+            new Route("POST", "/api/auth/forgot-password", false,
+                    Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build()),
+            // Reset-password: token is a 32-hex opaque value (infeasible to guess);
+            // this bound is defence-in-depth against brute-forcing.
+            new Route("POST", "/api/auth/reset-password", false,
+                    Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
             new Route("POST", "/api/enquiries", false,
                     Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build()),
             // Each agent chat costs real Claude tokens — keep this tight.
