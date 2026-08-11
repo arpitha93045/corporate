@@ -1,0 +1,74 @@
+# Coolify deployment stack: Postgres + Spring Boot backend + Angular (nginx).
+#
+# Differences from docker-compose.yml (local dev):
+#   - No Caddy service and no host port bindings. Coolify's built-in proxy
+#     (Traefik) terminates TLS and routes the domain to the "frontend" service.
+#   - The frontend nginx is the single web entrypoint: it serves the SPA and
+#     proxies /api + /actuator to the backend over the internal network.
+#
+# In Coolify: New Resource -> Docker Compose -> this file. Set the domain on the
+# "frontend" service and provide the environment variables below in the UI.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-corporate}
+      POSTGRES_USER: ${POSTGRES_USER:-corporate}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-corporate}
+    volumes:
+      - corporate_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-corporate} -d ${POSTGRES_DB:-corporate}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./corporate-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-corporate}
+      DATABASE_USER: ${POSTGRES_USER:-corporate}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-corporate}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS:-86400}
+      APP_BASE_URL: ${APP_BASE_URL}
+      # The frontend nginx proxies requests here and forwards X-Forwarded-For;
+      # trust it so per-IP rate limiting is accurate.
+      RATELIMIT_TRUST_FORWARDED_FOR: "true"
+      # Stripe: prod refuses to boot with the placeholder keys.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_CURRENCY: ${STRIPE_CURRENCY:-inr}
+      # Mail (optional; disabled unless MAIL_ENABLED=true).
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_ENQUIRIES_TO: ${MAIL_ENQUIRIES_TO:-}
+      # Admin bootstrap (optional): promotes this already-registered user.
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-}
+      # AI agent (optional; inert without a key).
+      AGENT_ENABLED: ${AGENT_ENABLED:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AGENT_MODEL: ${AGENT_MODEL:-claude-sonnet-4-6}
+
+  frontend:
+    build: ./corporate-ui
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # Coolify's proxy routes the configured domain to this service's port 80.
+    # Set the domain on this service in the Coolify UI (e.g. gifts.example.com).
+    expose:
+      - "80"
+
+volumes:
+  corporate_pg_data:
