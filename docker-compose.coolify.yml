@@ -65,8 +65,11 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    # Coolify's proxy routes the configured domain to this service's port 80.
-    # Set the domain on this service in the Coolify UI (e.g. gifts.example.com).
+    environment:
+      # Coolify magic var: presence on the service makes Coolify generate the
+      # Traefik router + Let's Encrypt cert and route this FQDN to port 80.
+      # Set SERVICE_FQDN_FRONTEND_80 in the Coolify UI to your https:// domain.
+      SERVICE_FQDN_FRONTEND_80: ${SERVICE_FQDN_FRONTEND_80}
     expose:
       - "80"
 
