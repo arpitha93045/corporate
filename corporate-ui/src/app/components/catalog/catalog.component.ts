@@ -1,6 +1,6 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { Category, Product } from '../../models/models';
 import { MoneyPipe } from '../../shared/money.pipe';
@@ -12,8 +12,9 @@ import { MoneyPipe } from '../../shared/money.pipe';
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.css'
 })
-export class CatalogComponent {
+export class CatalogComponent implements OnInit {
   private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
 
   protected categories = signal<Category[]>([]);
   protected products = signal<Product[]>([]);
@@ -59,7 +60,6 @@ export class CatalogComponent {
       next: c => this.categories.set(c),
       error: () => {}
     });
-    this.loadProducts();
 
     // Debounce free-text search so we don't fire a request per keystroke.
     effect(() => {
@@ -73,6 +73,15 @@ export class CatalogComponent {
     });
   }
 
+  ngOnInit(): void {
+    // Subscribe to query params for category filtering from URL
+    this.route.queryParams.subscribe(params => {
+      const category = params['category'] || null;
+      this.selectedCategory.set(category);
+      this.loadProducts();
+    });
+  }
+
   protected selectCategory(slug: string | null): void {
     this.selectedCategory.set(slug);
     this.loadProducts();
@@ -82,6 +91,24 @@ export class CatalogComponent {
     this.search.set('');
     this.minPrice.set(null);
     this.maxPrice.set(null);
+  }
+
+  protected getCategoryIcon(slug: string): string {
+    const icons: Record<string, string> = {
+      'welcome-kits': '👋',
+      'hampers': '🧺',
+      'drinkware': '☕',
+      'tech': '💻',
+      'plants': '🌱',
+      'chocolates': '🍫',
+      'stationery': '✏️',
+      'bags': '👜',
+      'wellness': '🧘',
+      'home': '🏠',
+      'accessories': '⌚',
+      'apparel': '👕'
+    };
+    return icons[slug] || '🎁';
   }
 
   private loadProducts(): void {

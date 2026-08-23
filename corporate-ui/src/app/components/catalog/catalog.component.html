@@ -1,12 +1,86 @@
+<section class="promo-bar">
+  <span>🎁 <strong>Bulk Orders:</strong> Get up to 30% off on orders of 100+ items</span>
+  <span class="divider">|</span>
+  <span>🚚 Free shipping on orders above ₹10,000</span>
+  <span class="divider">|</span>
+  <span>✨ Custom branding available</span>
+</section>
+
 <section class="hero">
-  <h1>Corporate gifts, thoughtfully curated.</h1>
-  <p class="muted">Welcome kits, premium hampers, branded merch, and more — built for teams who care about the details.</p>
+  <div class="hero-content">
+    <span class="hero-badge">🏆 India's Trusted Corporate Gifting Partner</span>
+    <h1>Premium Corporate Gifts<br>for Every Occasion</h1>
+    <p class="hero-subtitle">Employee welcome kits, festive hampers, client appreciation gifts, and branded merchandise — curated for businesses that care about making an impression.</p>
+    <div class="hero-cta">
+      <a routerLink="/bulk-order" class="btn btn-lg">Request Bulk Quote</a>
+      <a routerLink="/enquiry" class="btn btn-outline-light btn-lg">Talk to Expert</a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Pan-India Delivery</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>500+ Companies Served</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Custom Branding</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-image">
+    <div class="hero-img-placeholder">
+      <span>🎁</span>
+    </div>
+  </div>
+</section>
+
+<section class="features-strip">
+  <div class="feature-item">
+    <span class="feature-icon">🚚</span>
+    <div class="feature-text">
+      <strong>Free Delivery</strong>
+      <span>On orders ₹10k+</span>
+    </div>
+  </div>
+  <div class="feature-item">
+    <span class="feature-icon">🎨</span>
+    <div class="feature-text">
+      <strong>Custom Branding</strong>
+      <span>Logo & message</span>
+    </div>
+  </div>
+  <div class="feature-item">
+    <span class="feature-icon">📦</span>
+    <div class="feature-text">
+      <strong>Bulk Discounts</strong>
+      <span>Up to 30% off</span>
+    </div>
+  </div>
+  <div class="feature-item">
+    <span class="feature-icon">⚡</span>
+    <div class="feature-text">
+      <strong>Fast Turnaround</strong>
+      <span>3-5 business days</span>
+    </div>
+  </div>
+</section>
+
+<section class="section-header">
+  <h2>Shop by Category</h2>
+  <p class="muted">Find the perfect gift for every corporate occasion</p>
 </section>
 
 <section class="filters">
-  <button class="chip" [class.active]="selectedCategory() === null" (click)="selectCategory(null)">All</button>
+  <button class="chip" [class.active]="selectedCategory() === null" (click)="selectCategory(null)">
+    <span class="chip-icon">🎁</span> All Gifts
+  </button>
   @for (c of categories(); track c.id) {
-    <button class="chip" [class.active]="selectedCategory() === c.slug" (click)="selectCategory(c.slug)">{{ c.name }}</button>
+    <button class="chip" [class.active]="selectedCategory() === c.slug" (click)="selectCategory(c.slug)">
+      <span class="chip-icon">{{ getCategoryIcon(c.slug) }}</span> {{ c.name }}
+    </button>
   }
 </section>
 
@@ -41,7 +115,10 @@
 </section>
 
 @if (loading()) {
-  <p class="muted">Loading products…</p>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading products…</p>
+  </div>
 } @else if (error()) {
   <p class="error">{{ error() }}</p>
 } @else if (visibleProducts().length === 0) {
@@ -51,7 +128,7 @@
     <p class="muted">No products in this category yet.</p>
   }
 } @else {
-  <p class="result-count muted">Showing {{ visibleProducts().length }} of {{ products().length }}</p>
+  <p class="result-count muted">Showing {{ visibleProducts().length }} of {{ products().length }} products</p>
   <section class="product-grid">
     @for (p of visibleProducts(); track p.id) {
       <a class="product-card card" [routerLink]="['/products', p.slug]">
@@ -71,3 +148,58 @@
     }
   </section>
 }
+
+<!-- Why Choose Us Section -->
+<section class="why-us-section">
+  <div class="section-header">
+    <h2>Why Companies Choose Us</h2>
+    <p class="muted">Trusted by 500+ businesses across India</p>
+  </div>
+  <div class="why-us-grid">
+    <div class="why-us-card">
+      <div class="why-us-icon">🎯</div>
+      <h3>Curated Selection</h3>
+      <p>Hand-picked premium gifts from trusted brands and artisans, ensuring quality that impresses.</p>
+    </div>
+    <div class="why-us-card">
+      <div class="why-us-icon">🎨</div>
+      <h3>Complete Customization</h3>
+      <p>Add your logo, custom messages, and branded packaging to make every gift uniquely yours.</p>
+    </div>
+    <div class="why-us-card">
+      <div class="why-us-icon">📦</div>
+      <h3>Bulk Order Experts</h3>
+      <p>Special pricing and dedicated support for orders of 50+ items. We handle the logistics.</p>
+    </div>
+    <div class="why-us-card">
+      <div class="why-us-icon">🚀</div>
+      <h3>Fast Delivery</h3>
+      <p>Pan-India delivery in 3-5 business days. Rush orders available for urgent requirements.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Clients Section -->
+<section class="clients-section">
+  <p class="clients-label">Trusted by leading companies</p>
+  <div class="clients-logos">
+    <div class="client-logo">TCS</div>
+    <div class="client-logo">Infosys</div>
+    <div class="client-logo">Wipro</div>
+    <div class="client-logo">Accenture</div>
+    <div class="client-logo">Deloitte</div>
+    <div class="client-logo">Amazon</div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="cta-content">
+    <h2>Need a Custom Solution?</h2>
+    <p>Tell us about your gifting requirements and we'll create a personalized proposal within 24 hours.</p>
+    <div class="cta-buttons">
+      <a routerLink="/enquiry" class="btn btn-lg btn-cta">Get Custom Quote</a>
+      <a href="tel:+919741667578" class="btn btn-lg btn-outline-white">📞 Call Us Now</a>
+    </div>
+  </div>
+</section>

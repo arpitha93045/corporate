@@ -1,36 +1,143 @@
 .checkout-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 2rem;
+  grid-template-columns: 1fr 380px;
+  gap: 2.5rem;
   align-items: start;
 }
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .checkout-layout { grid-template-columns: 1fr; }
 }
 
-.form { display: flex; flex-direction: column; gap: 1.25rem; }
-.form-section { padding: 1.25rem; }
-.form-section h3 { margin-top: 0; }
-.form-section > div { margin-bottom: 0.9rem; }
+.form { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.form-section {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+}
+.form-section h3 {
+  margin-top: 0;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
+}
+.form-section > div { margin-bottom: 1.1rem; }
+.form-section > div:last-child { margin-bottom: 0; }
+
+.form-section label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form-section input,
+.form-section select {
+  padding: 0.85rem 1rem;
+}
 
 .grid-2 {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
 }
 .grid-2 > div { margin: 0; }
 @media (max-width: 500px) {
   .grid-2 { grid-template-columns: 1fr; }
 }
 
-.summary { padding: 1.25rem; position: sticky; top: 90px; }
-.summary h3 { margin-top: 0; }
-.summary .lines { list-style: none; padding: 0; margin: 0 0 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.summary .lines li { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.95rem; }
-.summary .lines .name { flex: 1; }
-.summary .lines .branding-note { display: block; margin-top: 0.15rem; }
-.summary .row.total { display: flex; justify-content: space-between; font-weight: 600; font-size: 1.05rem; border-top: 1px solid var(--border); padding-top: 0.75rem; }
-.small { font-size: 0.8rem; }
+.summary {
+  padding: 1.75rem;
+  position: sticky;
+  top: 100px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.summary h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.summary .lines {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.summary .lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--border);
+}
+.summary .lines li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.summary .lines .name { flex: 1; font-weight: 500; }
+.summary .lines .branding-note {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+.summary .row.total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.2rem;
+  border-top: 2px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+.small { font-size: 0.85rem; }
 
-.pay-options { display: flex; gap: 1.25rem; flex-wrap: wrap; }
-.pay-option { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
-.po-field { margin-top: 0.75rem; }
-.error.small { color: #8a1c14; margin: 0.35rem 0 0; }
+.summary .btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.pay-options {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0;
+}
+.pay-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+.pay-option:hover {
+  border-color: var(--accent);
+}
+.pay-option input[type="radio"]:checked + span,
+.pay-option:has(input[type="radio"]:checked) {
+  color: var(--accent);
+}
+
+.po-field { margin-top: 1rem; }
+.error.small {
+  color: var(--danger);
+  margin: 0.5rem 0 0;
+  background: #fef2f2;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid #fecaca;
+}

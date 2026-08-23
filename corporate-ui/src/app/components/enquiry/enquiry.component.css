@@ -1,12 +1,106 @@
-.form { display: flex; flex-direction: column; gap: 1.25rem; padding: 1.5rem; }
-.form > div { display: flex; flex-direction: column; gap: 0.35rem; }
-.grid-2 {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+:host {
+  display: block;
+  max-width: 800px;
+  margin: 0 auto;
 }
-.grid-2 > div { display: flex; flex-direction: column; gap: 0.35rem; margin: 0; }
+
+h1 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+h1 + .muted {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+}
+
+.form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form input,
+.form textarea {
+  padding: 0.85rem 1rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.grid-2 > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+}
 @media (max-width: 600px) {
   .grid-2 { grid-template-columns: 1fr; }
 }
-textarea { font-family: inherit; padding: 0.6rem; border: 1px solid var(--border); border-radius: 4px; }
-.thanks { padding: 1.5rem; }
-.thanks h3 { margin-top: 0; }
+
+textarea {
+  font-family: inherit;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+  min-height: 120px;
+  transition: all var(--transition-fast);
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.form button[type="submit"] {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  align-self: flex-start;
+}
+@media (max-width: 600px) {
+  .form button[type="submit"] {
+    width: 100%;
+  }
+}
+
+.thanks {
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-hero);
+  border: none;
+}
+.thanks h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: var(--accent-dark);
+}
+.thanks p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin: 0;
+}

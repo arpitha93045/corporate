@@ -61,4 +61,9 @@ export class ApiService {
   declineQuote(token: string): Observable<Quote> {
     return this.http.post<Quote>(`${this.base}/quotes/${token}/decline`, {});
   }
+
+  // Newsletter
+  subscribeNewsletter(email: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.base}/newsletter/subscribe`, { email });
+  }
 }

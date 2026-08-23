@@ -1,3 +1,16 @@
+<div class="top-bar">
+  <div class="container top-bar-content">
+    <span>📞 +91 97416 67578</span>
+    <span class="divider">|</span>
+    <span>✉️ hello&#64;corporategifting.in</span>
+    <span class="top-bar-right">
+      <span>🚚 Pan-India Delivery</span>
+      <span class="divider">|</span>
+      <span>⭐ 4.9/5 Rating</span>
+    </span>
+  </div>
+</div>
+
 <header class="site-header">
   <div class="container header-inner">
     <a routerLink="/" class="brand">
@@ -5,31 +18,43 @@
       <span class="brand-name">Corporate Gifting</span>
     </a>
     <nav class="primary-nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Catalog</a>
-      <a routerLink="/gift-plan" routerLinkActive="active">Gift plan</a>
-      <a routerLink="/bulk-order" routerLinkActive="active">Bulk order</a>
-      <a routerLink="/enquiry" routerLinkActive="active">Bulk enquiry</a>
-      <a routerLink="/about" routerLinkActive="active">About</a>
-      <a routerLink="/cart" routerLinkActive="active" class="cart-link">
-        Cart
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="nav-icon">🎁</span> Shop
+      </a>
+      <a routerLink="/gift-plan" routerLinkActive="active">
+        <span class="nav-icon">📋</span> Gift Plans
+      </a>
+      <a routerLink="/bulk-order" routerLinkActive="active">
+        <span class="nav-icon">📦</span> Bulk Order
+      </a>
+      <a routerLink="/enquiry" routerLinkActive="active">
+        <span class="nav-icon">💬</span> Get Quote
+      </a>
+      <a routerLink="/about" routerLinkActive="active">
+        <span class="nav-icon">ℹ️</span> About
+      </a>
+    </nav>
+    <div class="header-actions">
+      <a routerLink="/cart" class="cart-btn">
+        🛒 Cart
         @if (cart.count() > 0) {
           <span class="cart-badge">{{ cart.count() }}</span>
         }
       </a>
       @if (auth.isAuthenticated()) {
-        <a routerLink="/account/orders" routerLinkActive="active">My orders</a>
-        @if (auth.user()?.role === 'ADMIN') {
-          <a routerLink="/admin" routerLinkActive="active">Admin</a>
-        }
-        <span class="user-chip" title="{{ auth.user()?.email }}">
-          {{ auth.user()?.fullName }}
-        </span>
-        <button type="button" class="link-btn" (click)="logout()">Sign out</button>
+        <div class="user-menu">
+          <a routerLink="/account/orders" class="user-link">My Orders</a>
+          @if (auth.user()?.role === 'ADMIN') {
+            <a routerLink="/admin" class="user-link">Admin</a>
+          }
+          <span class="user-chip">{{ auth.user()?.fullName }}</span>
+          <button type="button" class="link-btn" (click)="logout()">Sign out</button>
+        </div>
       } @else {
-        <a routerLink="/login" routerLinkActive="active">Sign in</a>
-        <a routerLink="/signup" routerLinkActive="active" class="signup-link">Sign up</a>
+        <a routerLink="/login" class="login-link">Sign in</a>
+        <a routerLink="/signup" class="signup-link">Get Started</a>
       }
-    </nav>
+    </div>
   </div>
 </header>
 
@@ -38,8 +63,134 @@
 </main>
 
 <footer class="site-footer">
-  <div class="container">
-    <p>&copy; {{ year }} Corporate Gifting. Thoughtful gifts for thoughtful companies.</p>
+  <!-- Newsletter Section -->
+  <div class="footer-newsletter">
+    <div class="container newsletter-content">
+      <div class="newsletter-text">
+        <h3>🎁 Get Exclusive Offers</h3>
+        <p>Subscribe to receive bulk order discounts and new product updates.</p>
+      </div>
+      <div class="newsletter-form">
+        @if (newsletterStatus() === 'success') {
+          <div class="newsletter-success">
+            <span>✓</span> {{ newsletterMessage() }}
+          </div>
+        } @else {
+          <input
+            type="email"
+            placeholder="Enter your email address"
+            [ngModel]="newsletterEmail()"
+            (ngModelChange)="newsletterEmail.set($event)"
+            [disabled]="newsletterStatus() === 'loading'"
+          />
+          <button
+            class="btn"
+            (click)="subscribeNewsletter()"
+            [disabled]="newsletterStatus() === 'loading' || !newsletterEmail()"
+          >
+            {{ newsletterStatus() === 'loading' ? 'Subscribing...' : 'Subscribe' }}
+          </button>
+        }
+        @if (newsletterStatus() === 'error') {
+          <div class="newsletter-error">{{ newsletterMessage() }}</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Footer -->
+  <div class="footer-main">
+    <div class="container footer-grid">
+      <!-- Brand Column -->
+      <div class="footer-brand-col">
+        <div class="brand">
+          <span class="brand-mark">CG</span>
+          <span class="brand-name">Corporate Gifting</span>
+        </div>
+        <p class="footer-desc">India's trusted corporate gifting partner. Premium gifts for employee onboarding, client appreciation, festive celebrations, and more.</p>
+        <div class="footer-contact">
+          <div class="contact-item">
+            <span class="contact-icon">📞</span>
+            <span>+91 97416 67578</span>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">✉️</span>
+            <span>hello&#64;corporategifting.in</span>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📍</span>
+            <span>Bangalore, India</span>
+          </div>
+        </div>
+        <div class="social-links">
+          <a href="#" class="social-link" title="Facebook">f</a>
+          <a href="#" class="social-link" title="Instagram">📷</a>
+          <a href="#" class="social-link" title="LinkedIn">in</a>
+          <a href="#" class="social-link" title="Twitter">𝕏</a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <a routerLink="/">All Products</a>
+        <a routerLink="/bulk-order">Bulk Orders</a>
+        <a routerLink="/gift-plan">Gift Plans</a>
+        <a routerLink="/enquiry">Request Quote</a>
+        <a routerLink="/cart">Shopping Cart</a>
+      </div>
+
+      <!-- Categories -->
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <a routerLink="/" [queryParams]="{category: 'welcome-kits'}">Welcome Kits</a>
+        <a routerLink="/" [queryParams]="{category: 'hampers'}">Premium Hampers</a>
+        <a routerLink="/" [queryParams]="{category: 'tech'}">Tech Accessories</a>
+        <a routerLink="/" [queryParams]="{category: 'drinkware'}">Drinkware</a>
+        <a routerLink="/" [queryParams]="{category: 'plants'}">Eco-Friendly Gifts</a>
+      </div>
+
+      <!-- Company -->
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a routerLink="/about">About Us</a>
+        <a routerLink="/enquiry">Contact Us</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Shipping Policy</a>
+      </div>
+
+      <!-- Why Choose Us -->
+      <div class="footer-col">
+        <h4>Why Choose Us</h4>
+        <div class="footer-features">
+          <div class="footer-feature">✓ Pan-India Delivery</div>
+          <div class="footer-feature">✓ Custom Branding</div>
+          <div class="footer-feature">✓ Bulk Discounts</div>
+          <div class="footer-feature">✓ Quality Assured</div>
+          <div class="footer-feature">✓ Dedicated Support</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div class="footer-bottom">
+    <div class="container footer-bottom-content">
+      <p class="copyright">&copy; {{ year }} Corporate Gifting. All rights reserved.</p>
+      <div class="payment-methods">
+        <span class="payment-label">We accept:</span>
+        <div class="payment-icons">
+          <span class="payment-icon">💳</span>
+          <span class="payment-icon">🏦</span>
+          <span class="payment-icon">📱</span>
+        </div>
+      </div>
+      <div class="footer-badges">
+        <span class="trust-badge">🔒 Secure Payments</span>
+        <span class="trust-badge">⭐ 4.9/5 Rating</span>
+      </div>
+    </div>
   </div>
 </footer>
 
