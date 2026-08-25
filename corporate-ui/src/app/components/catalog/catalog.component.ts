@@ -4,11 +4,12 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { Category, Product } from '../../models/models';
 import { MoneyPipe } from '../../shared/money.pipe';
+import { AnimateOnScrollDirective } from '../../shared/directives/animate-on-scroll.directive';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [RouterLink, FormsModule, MoneyPipe],
+  imports: [RouterLink, FormsModule, MoneyPipe, AnimateOnScrollDirective],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.css'
 })

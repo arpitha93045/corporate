@@ -7,12 +7,12 @@
 </section>
 
 <section class="hero">
-  <div class="hero-content">
-    <span class="hero-badge">🏆 India's Trusted Corporate Gifting Partner</span>
+  <div class="hero-content" appAnimateOnScroll="fadeInLeft" [animationDuration]="800">
+    <span class="hero-badge animate-pulse">🏆 India's Trusted Corporate Gifting Partner</span>
     <h1>Premium Corporate Gifts<br>for Every Occasion</h1>
     <p class="hero-subtitle">Employee welcome kits, festive hampers, client appreciation gifts, and branded merchandise — curated for businesses that care about making an impression.</p>
     <div class="hero-cta">
-      <a routerLink="/bulk-order" class="btn btn-lg">Request Bulk Quote</a>
+      <a routerLink="/bulk-order" class="btn btn-lg btn-shine">Request Bulk Quote</a>
       <a routerLink="/enquiry" class="btn btn-outline-light btn-lg">Talk to Expert</a>
     </div>
     <div class="hero-trust">
@@ -30,37 +30,37 @@
       </div>
     </div>
   </div>
-  <div class="hero-image">
+  <div class="hero-image" appAnimateOnScroll="fadeInRight" [animationDuration]="800" [animationDelay]="200">
     <div class="hero-img-placeholder">
       <span>🎁</span>
     </div>
   </div>
 </section>
 
-<section class="features-strip">
-  <div class="feature-item">
-    <span class="feature-icon">🚚</span>
+<section class="features-strip" appAnimateOnScroll="fadeInUp" [animationDuration]="700">
+  <div class="feature-item" appAnimateOnScroll="fadeInUp" [animationDelay]="0">
+    <span class="feature-icon icon-wobble">🚚</span>
     <div class="feature-text">
       <strong>Free Delivery</strong>
       <span>On orders ₹10k+</span>
     </div>
   </div>
-  <div class="feature-item">
-    <span class="feature-icon">🎨</span>
+  <div class="feature-item" appAnimateOnScroll="fadeInUp" [animationDelay]="100">
+    <span class="feature-icon icon-wobble">🎨</span>
     <div class="feature-text">
       <strong>Custom Branding</strong>
       <span>Logo & message</span>
     </div>
   </div>
-  <div class="feature-item">
-    <span class="feature-icon">📦</span>
+  <div class="feature-item" appAnimateOnScroll="fadeInUp" [animationDelay]="200">
+    <span class="feature-icon icon-wobble">📦</span>
     <div class="feature-text">
       <strong>Bulk Discounts</strong>
       <span>Up to 30% off</span>
     </div>
   </div>
-  <div class="feature-item">
-    <span class="feature-icon">⚡</span>
+  <div class="feature-item" appAnimateOnScroll="fadeInUp" [animationDelay]="300">
+    <span class="feature-icon icon-wobble">⚡</span>
     <div class="feature-text">
       <strong>Fast Turnaround</strong>
       <span>3-5 business days</span>
@@ -68,7 +68,7 @@
   </div>
 </section>
 
-<section class="section-header">
+<section class="section-header" appAnimateOnScroll="fadeInUp">
   <h2>Shop by Category</h2>
   <p class="muted">Find the perfect gift for every corporate occasion</p>
 </section>
@@ -151,28 +151,28 @@
 
 <!-- Why Choose Us Section -->
 <section class="why-us-section">
-  <div class="section-header">
+  <div class="section-header" appAnimateOnScroll="fadeInUp">
     <h2>Why Companies Choose Us</h2>
     <p class="muted">Trusted by 500+ businesses across India</p>
   </div>
   <div class="why-us-grid">
-    <div class="why-us-card">
-      <div class="why-us-icon">🎯</div>
+    <div class="why-us-card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="0">
+      <div class="why-us-icon icon-wobble">🎯</div>
       <h3>Curated Selection</h3>
       <p>Hand-picked premium gifts from trusted brands and artisans, ensuring quality that impresses.</p>
     </div>
-    <div class="why-us-card">
-      <div class="why-us-icon">🎨</div>
+    <div class="why-us-card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="100">
+      <div class="why-us-icon icon-wobble">🎨</div>
       <h3>Complete Customization</h3>
       <p>Add your logo, custom messages, and branded packaging to make every gift uniquely yours.</p>
     </div>
-    <div class="why-us-card">
-      <div class="why-us-icon">📦</div>
+    <div class="why-us-card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="200">
+      <div class="why-us-icon icon-wobble">📦</div>
       <h3>Bulk Order Experts</h3>
       <p>Special pricing and dedicated support for orders of 50+ items. We handle the logistics.</p>
     </div>
-    <div class="why-us-card">
-      <div class="why-us-icon">🚀</div>
+    <div class="why-us-card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="300">
+      <div class="why-us-icon icon-wobble">🚀</div>
       <h3>Fast Delivery</h3>
       <p>Pan-India delivery in 3-5 business days. Rush orders available for urgent requirements.</p>
     </div>
@@ -180,25 +180,25 @@
 </section>
 
 <!-- Clients Section -->
-<section class="clients-section">
+<section class="clients-section" appAnimateOnScroll="fadeInUp">
   <p class="clients-label">Trusted by leading companies</p>
   <div class="clients-logos">
-    <div class="client-logo">TCS</div>
-    <div class="client-logo">Infosys</div>
-    <div class="client-logo">Wipro</div>
-    <div class="client-logo">Accenture</div>
-    <div class="client-logo">Deloitte</div>
-    <div class="client-logo">Amazon</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="0">TCS</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="80">Infosys</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="160">Wipro</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="240">Accenture</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="320">Deloitte</div>
+    <div class="client-logo" appAnimateOnScroll="scaleIn" [animationDelay]="400">Amazon</div>
   </div>
 </section>
 
 <!-- CTA Section -->
-<section class="cta-section">
+<section class="cta-section animated-gradient" appAnimateOnScroll="fadeInUp">
   <div class="cta-content">
-    <h2>Need a Custom Solution?</h2>
-    <p>Tell us about your gifting requirements and we'll create a personalized proposal within 24 hours.</p>
-    <div class="cta-buttons">
-      <a routerLink="/enquiry" class="btn btn-lg btn-cta">Get Custom Quote</a>
+    <h2 appAnimateOnScroll="fadeInUp" [animationDelay]="100">Need a Custom Solution?</h2>
+    <p appAnimateOnScroll="fadeInUp" [animationDelay]="200">Tell us about your gifting requirements and we'll create a personalized proposal within 24 hours.</p>
+    <div class="cta-buttons" appAnimateOnScroll="fadeInUp" [animationDelay]="300">
+      <a routerLink="/enquiry" class="btn btn-lg btn-cta btn-shine">Get Custom Quote</a>
       <a href="tel:+919741667578" class="btn btn-lg btn-outline-white">📞 Call Us Now</a>
     </div>
   </div>

@@ -18,10 +18,18 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, #0891b2 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #0891b2 50%, var(--accent) 100%);
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: gradientFlow 3s ease-in-out infinite;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .hero-desc {
@@ -52,6 +60,19 @@
 .value-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+/* Icon wobble animation on card hover */
+.value-card:hover .value-icon {
+  animation: iconWobble 0.5s ease-in-out;
+}
+
+@keyframes iconWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-12deg) scale(1.1); }
+  75% { transform: rotate(12deg) scale(1.1); }
 }
 
 .value-card h3 {
@@ -89,6 +110,13 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.step:hover {
+  background: var(--bg);
 }
 
 .step-number {
@@ -104,6 +132,12 @@
   font-size: 1.25rem;
   flex-shrink: 0;
   box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.step:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .step-content h4 {
@@ -153,6 +187,12 @@
   font-weight: 600;
   font-size: 0.95rem;
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.trust-badge:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 /* CTA Section */
@@ -181,6 +221,32 @@
   justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+/* Shine animation for primary button */
+.cta-buttons .btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-buttons .btn-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.cta-buttons .btn-shine:hover::before {
+  left: 100%;
 }
 
 .cta-section .btn-outline {

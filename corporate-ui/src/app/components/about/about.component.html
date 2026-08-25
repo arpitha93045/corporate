@@ -1,7 +1,7 @@
 <section class="about-hero">
-  <span class="badge badge-accent">About Us</span>
-  <h1>Thoughtful gifts for<br><span class="gradient-text">thoughtful companies.</span></h1>
-  <p class="hero-desc">
+  <span class="badge badge-accent" appAnimateOnScroll="fadeInUp">About Us</span>
+  <h1 appAnimateOnScroll="fadeInUp" [animationDelay]="100">Thoughtful gifts for<br><span class="gradient-text">thoughtful companies.</span></h1>
+  <p class="hero-desc" appAnimateOnScroll="fadeInUp" [animationDelay]="200">
     Corporate Gifting helps growing businesses say thank you, welcome aboard,
     and well done &mdash; without the busywork. We curate gifts that feel
     personal, sourced from independent makers and trusted brands.
@@ -9,68 +9,68 @@
 </section>
 
 <section class="values-grid">
-  <div class="value-card card">
-    <div class="value-icon">🎁</div>
+  <div class="value-card card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="0">
+    <div class="value-icon icon-wobble">🎁</div>
     <h3>Curated Selection</h3>
     <p>Hand-picked gifts that stand out — chocolates, plants, desk objects, and mindful drinkware.</p>
   </div>
-  <div class="value-card card">
-    <div class="value-icon">✨</div>
+  <div class="value-card card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="100">
+    <div class="value-icon icon-wobble">✨</div>
     <h3>Personal Touch</h3>
     <p>Every gift can be customized with your branding and a personal message.</p>
   </div>
-  <div class="value-card card">
-    <div class="value-icon">🚀</div>
+  <div class="value-card card card-lift" appAnimateOnScroll="fadeInUp" [animationDelay]="200">
+    <div class="value-icon icon-wobble">🚀</div>
     <h3>Hassle-Free</h3>
     <p>You order, we handle packaging and delivery — across India and beyond.</p>
   </div>
 </section>
 
-<section class="how-it-works">
+<section class="how-it-works" appAnimateOnScroll="fadeIn">
   <h2>How it works</h2>
   <div class="steps">
-    <div class="step">
+    <div class="step" appAnimateOnScroll="fadeInLeft" [animationDelay]="0">
       <div class="step-number">1</div>
       <div class="step-content">
         <h4>Browse & Choose</h4>
-        <p>Explore our <a routerLink="/">catalog</a> and pick what fits the moment.</p>
+        <p>Explore our <a routerLink="/" class="animated-underline">catalog</a> and pick what fits the moment.</p>
       </div>
     </div>
-    <div class="step">
+    <div class="step" appAnimateOnScroll="fadeInLeft" [animationDelay]="150">
       <div class="step-number">2</div>
       <div class="step-content">
         <h4>Customize & Order</h4>
         <p>Add branding, enter recipient details — we handle the rest.</p>
       </div>
     </div>
-    <div class="step">
+    <div class="step" appAnimateOnScroll="fadeInLeft" [animationDelay]="300">
       <div class="step-number">3</div>
       <div class="step-content">
         <h4>Scale Up</h4>
-        <p>For 50+ gifts, <a routerLink="/enquiry">drop us a line</a> for a custom proposal.</p>
+        <p>For 50+ gifts, <a routerLink="/enquiry" class="animated-underline">drop us a line</a> for a custom proposal.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="who-section card">
+<section class="who-section card" appAnimateOnScroll="fadeInUp">
   <h2>Who we work with</h2>
   <p>
     Tech companies, professional services firms, agencies, and HR teams across
     India who care about how a gift lands &mdash; not just that one was sent.
   </p>
   <div class="trust-badges">
-    <span class="trust-badge">🏢 500+ Companies</span>
-    <span class="trust-badge">📦 50k+ Gifts</span>
-    <span class="trust-badge">⭐ 4.9 Rating</span>
+    <span class="trust-badge" appAnimateOnScroll="scaleIn" [animationDelay]="0">🏢 500+ Companies</span>
+    <span class="trust-badge" appAnimateOnScroll="scaleIn" [animationDelay]="100">📦 50k+ Gifts</span>
+    <span class="trust-badge" appAnimateOnScroll="scaleIn" [animationDelay]="200">⭐ 4.9 Rating</span>
   </div>
 </section>
 
-<section class="cta-section">
+<section class="cta-section" appAnimateOnScroll="fadeInUp">
   <h2>Ready to get started?</h2>
   <p>Browse our collection or get in touch for a custom solution.</p>
   <div class="cta-buttons">
-    <a routerLink="/" class="btn btn-lg">Browse catalog</a>
+    <a routerLink="/" class="btn btn-lg btn-shine">Browse catalog</a>
     <a routerLink="/enquiry" class="btn btn-outline btn-lg">Contact us</a>
   </div>
 </section>
